@@ -1,0 +1,24 @@
+# Format: 
+#    Website Name|Website URL
+
+    
+Google|https://www.google.com
+YouTube|https://www.youtube.com
+Wikipedia|https://www.wikipedia.org
+GitHub|https://www.github.com
+Stack Overflow|https://stackoverflow.com
+Reddit|https://www.reddit.com
+Amazon|https://www.amazon.com
+Apple|https://www.apple.com
+Microsoft|https://www.microsoft.com
+OpenAI|https://www.openai.com
+LinkedIn|https://www.linkedin.com
+Netflix|https://www.netflix.com
+CNN|https://www.cnn.com
+BBC|https://www.bbc.com
+ESPN|https://www.espn.com
+Khan Academy|https://www.khanacademy.org
+Coursera|https://www.coursera.org
+Mozilla|https://www.mozilla.org
+W3Schools|https://www.w3schools.com
+GeeksforGeeks|https://www.geeksforgeeks.org
