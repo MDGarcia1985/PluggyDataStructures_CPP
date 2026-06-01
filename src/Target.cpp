@@ -1,109 +1,109 @@
 /*
- * File: Website.cpp
- * Description: Implements website storage, display formatting, and case-insensitive matching.
+ * File: Target.cpp
+ * Description: Implements generic record storage, display formatting, and case-insensitive matching.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
-#include "Website.h"
+#include "Target.h"
 
 
 // named container llb = linked list browser
 namespace llb
 {
     /*
-     * Purpose: Create an empty website object.
+     * Purpose: Create an empty target object.
      * Design: Keeps default construction safe by storing empty strings instead of null values.
-     * Workflow: Initialize the name and URL members before the object is used.
-     * Data Handoff: Produces a Website that other classes can fill later with setters.
+     * Workflow: Initialize both generic fields before the object is used.
+     * Data Handoff: Produces a Target that other classes can fill later with setters.
      */
-    Website::Website()
-        : name_(""), url_("")
+    Target::Target()
+        : fieldOne_(""), fieldTwo_("")
     {
     }
 
     /*
-     * Purpose: Create a website object from a name and URL.
+     * Purpose: Create a target object from two generic record fields.
      * Design: Accepts strings by value so callers can pass literals, copies, or movable strings.
      * Workflow: Move the incoming values into the private member variables.
      * Data Handoff: Stores validated-by-caller text for later display, search, and list storage.
      */
-    Website::Website(std::string name, std::string url)
-        : name_(std::move(name)), url_(std::move(url))
+    Target::Target(std::string fieldOne, std::string fieldTwo)
+        : fieldOne_(std::move(fieldOne)), fieldTwo_(std::move(fieldTwo))
     {
     }
 
     /*
-     * Purpose: Read the website name without modifying the object.
+     * Purpose: Read the first generic field without modifying the object.
      * Design: Returns a const reference to avoid copying the stored string.
-     * Workflow: Hand back direct read-only access to name_.
-     * Data Handoff: Gives display, search, and test code the current website name.
+     * Workflow: Hand back direct read-only access to fieldOne_.
+     * Data Handoff: Gives display, search, and test code the first field value.
      */
-    const std::string& Website::name() const
+    const std::string& Target::fieldOne() const
     {
-        return name_;
+        return fieldOne_;
     }
 
     /*
-     * Purpose: Read the website URL without modifying the object.
+     * Purpose: Read the second generic field without modifying the object.
      * Design: Returns a const reference to avoid copying the stored string.
-     * Workflow: Hand back direct read-only access to url_.
-     * Data Handoff: Gives display, search, and test code the current website URL.
+     * Workflow: Hand back direct read-only access to fieldTwo_.
+     * Data Handoff: Gives display, search, and test code the second field value.
      */
-    const std::string& Website::url() const
+    const std::string& Target::fieldTwo() const
     {
-        return url_;
+        return fieldTwo_;
     }
 
     /*
-     * Purpose: Replace the stored website name.
+     * Purpose: Replace the first generic field.
      * Design: Accepts a const reference because the function only needs to copy from the input.
-     * Workflow: Assign the incoming text to the private name_ member.
-     * Data Handoff: Takes user- or file-provided text and stores it inside this Website.
+     * Workflow: Assign the incoming text to the private fieldOne_ member.
+     * Data Handoff: Takes user- or file-provided text and stores it inside this Target.
      */
-    void Website::setName(const std::string& name)
+    void Target::setFieldOne(const std::string& fieldOne)
     {
-        name_ = name;
+        fieldOne_ = fieldOne;
     }
 
     /*
-     * Purpose: Replace the stored website URL.
+     * Purpose: Replace the second generic field.
      * Design: Accepts a const reference because the function only needs to copy from the input.
-     * Workflow: Assign the incoming text to the private url_ member.
-     * Data Handoff: Takes user- or file-provided text and stores it inside this Website.
+     * Workflow: Assign the incoming text to the private fieldTwo_ member.
+     * Data Handoff: Takes user- or file-provided text and stores it inside this Target.
      */
-    void Website::setUrl(const std::string& url)
+    void Target::setFieldTwo(const std::string& fieldTwo)
     {
-        url_ = url;
+        fieldTwo_ = fieldTwo;
     }
 
     /*
-     * Purpose: Decide whether a search term appears in the website name or URL.
+     * Purpose: Decide whether a search term appears in either target field.
      * Design: Converts all compared strings to lowercase so matching is case-insensitive.
-     * Workflow: Lowercase the name, URL, and search term, then look for the term in both fields.
-     * Data Handoff: Returns true or false to WebsiteList so it can collect matching results.
+     * Workflow: Lowercase both fields and the search term, then look for the term in either field.
+     * Data Handoff: Returns true or false to TargetList so it can collect matching results.
      */
-    bool Website::matches(const std::string& searchTerm) const
+    bool Target::matches(const std::string& searchTerm) const
     {
-        const std::string lowerName = toLowerCopy(name_);
-        const std::string lowerUrl = toLowerCopy(url_);
+        const std::string lowerFieldOne = toLowerCopy(fieldOne_);
+        const std::string lowerFieldTwo = toLowerCopy(fieldTwo_);
         const std::string lowerSearch = toLowerCopy(searchTerm);
 
-        return lowerName.find(lowerSearch) != std::string::npos ||
-               lowerUrl.find(lowerSearch) != std::string::npos;
+        return lowerFieldOne.find(lowerSearch) != std::string::npos ||
+               lowerFieldTwo.find(lowerSearch) != std::string::npos;
     }
 
     /*
-     * Purpose: Format a website as a single line for console output.
+     * Purpose: Format a target as a single line for console output.
      * Design: Keeps display text creation close to the data it represents.
-     * Workflow: Join the stored name and URL with a readable separator.
-     * Data Handoff: Returns text used by Display when printing websites.
+     * Workflow: Join the two stored fields with a readable separator.
+     * Data Handoff: Returns text used by Display when printing targets.
      */
-    std::string Website::toDisplayString() const
+    std::string Target::toDisplayString() const
     {
-        return name_ + " - " + url_;
+        return fieldOne_ + " - " + fieldTwo_;
     }
 
     /*
@@ -112,7 +112,7 @@ namespace llb
      * Workflow: Transform each character with std::tolower and return the converted string.
      * Data Handoff: Supplies normalized text to matches().
      */
-    std::string Website::toLowerCopy(std::string text)
+    std::string Target::toLowerCopy(std::string text)
     {
         std::transform(text.begin(), text.end(), text.begin(),
             [](unsigned char c)

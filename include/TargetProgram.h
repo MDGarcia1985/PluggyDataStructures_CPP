@@ -1,46 +1,46 @@
 /*
- * File: WebsiteProgram.h
- * Description: Declares the application controller for website browser workflows.
+ * File: TargetProgram.h
+ * Description: Declares the application controller for generic target workflows.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
 #pragma once
 
 #include "Header.h"
-#include "WebsiteList.h"
+#include "TargetList.h"
 
 
 // named container llb = linked list browser
 namespace llb
 {
-    class WebsiteProgram
+    class TargetProgram
     {
     private:
-        WebsiteList websites_;
+        TargetList targets_;
         bool exitRequested_;
         std::string dataFilePath_;
 
     public:
-        explicit WebsiteProgram(std::string dataFilePath = DEFAULT_DATA_FILE);
+        explicit TargetProgram(std::string dataFilePath = DEFAULT_DATA_FILE);
 
         void run();
         void loadInitialData();
         void requestExit();
         bool exitRequested() const;
 
-        WebsiteList& list();
-        const WebsiteList& list() const;
+        TargetList& list();
+        const TargetList& list() const;
 
         void displayList() const;
         void displayCurrent() const;
         void goForward();
         void goBackward();
-        void addWebsiteFromUser();
-        void deleteWebsiteFromUser();
-        void findWebsiteFromUser();
+        void addTargetFromUser();
+        void deleteTargetFromUser();
+        void findTargetFromUser();
     };
 
     int runApp();

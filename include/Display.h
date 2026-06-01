@@ -3,15 +3,15 @@
  * Description: Declares console output helpers for menus, lists, and search results.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
 #pragma once
 
 #include "Header.h"
-#include "Website.h"
-#include "WebsiteList.h"
+#include "Target.h"
+#include "TargetList.h"
 
 
 // named container llb = linked list browser
@@ -21,9 +21,9 @@ namespace llb
     {
         void printTitle();
         void printMessage(const std::string& message);
-        void printWebsite(const Website& website, std::size_t position = 0);
-        void printWebsiteList(const std::vector<Website>& websites);
-        void printCurrentWebsite(const Website* website, std::size_t position);
-        void printSearchResults(const std::vector<WebsiteSearchResult>& results);
+        void printTarget(const Target& target, std::size_t position = 0);
+        void printTargetList(const std::vector<Target>& targets);
+        void printCurrentTarget(const Target* target, std::size_t position);
+        void printSearchResults(const std::vector<TargetSearchResult>& results);
     }
 }

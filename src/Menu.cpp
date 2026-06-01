@@ -3,7 +3,7 @@
  * Description: Implements command registration, sorted menu display, and numeric input prompts.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -73,7 +73,7 @@ namespace llb
      * Purpose: Find a registered command by its numeric menu ID.
      * Design: Returns a pointer so nullptr can signal "not found" without throwing.
      * Workflow: Scan the stored commands and return the matching command address.
-     * Data Handoff: Gives WebsiteProgram either a runnable command or nullptr for invalid input.
+     * Data Handoff: Gives TargetProgram either a runnable command or nullptr for invalid input.
      */
     const CommandPlugin* CommandRegistry::findById(int id) const
     {
@@ -96,7 +96,7 @@ namespace llb
      */
     void Menu::display(const std::vector<CommandPlugin>& commands)
     {
-        std::cout << "\n\n\t*** Website Browser Menu ***\n\n";
+        std::cout << "\n\n\t*** Target Data Structure Menu ***\n\n";
 
         for (const CommandPlugin& command : commands)
         {
@@ -108,7 +108,7 @@ namespace llb
      * Purpose: Ask the user for a main menu choice.
      * Design: Delegates numeric validation to promptInteger() to avoid duplicate input logic.
      * Workflow: Call promptInteger() with the standard menu prompt.
-     * Data Handoff: Returns the chosen integer to WebsiteProgram.
+     * Data Handoff: Returns the chosen integer to TargetProgram.
      */
     int Menu::promptChoice()
     {
@@ -135,5 +135,27 @@ namespace llb
 
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return choice;
+    }
+
+    /*
+     * Purpose: Ask the user which sample data file should seed the TargetList.
+     * Design: Keeps source selection in Menu so TargetProgram can coordinate without owning input details.
+     * Workflow: Print the available files, read a numeric choice, and return the matching data path.
+     * Data Handoff: Returns a data/<selected_file> path that TargetProgram passes to FileLoader.
+     */
+    std::string Menu::selectDataSource()
+    {
+        std::cout << "\nSelect data source:\n";
+        std::cout << "1) data/websites.txt\n";
+        std::cout << "2) data/messages.txt\n";
+
+        const int choice = promptInteger("Enter your choice: ");
+
+        if (choice == 2)
+        {
+            return std::string(DATA_DIRECTORY) + "messages.txt";
+        }
+
+        return std::string(DATA_DIRECTORY) + "websites.txt";
     }
 }

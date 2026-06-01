@@ -12,12 +12,14 @@
                 "/I${workspaceFolder}\\include",
                 "/Fe${workspaceFolder}\\tests\\ApplicationTests.exe",
                 "${workspaceFolder}\\tests\\ApplicationTests.cpp",
-                "${workspaceFolder}\\src\\Website.cpp",
-                "${workspaceFolder}\\src\\WebsiteList.cpp",
+                "${workspaceFolder}\\src\\Target.cpp",
+                "${workspaceFolder}\\src\\TargetList.cpp",
+                "${workspaceFolder}\\src\\TargetStack.cpp",
+                "${workspaceFolder}\\src\\TargetQueue.cpp",
                 "${workspaceFolder}\\src\\Menu.cpp",
                 "${workspaceFolder}\\src\\FileLoader.cpp",
                 "${workspaceFolder}\\src\\Display.cpp",
-                "${workspaceFolder}\\src\\WebsiteProgram.cpp"
+                "${workspaceFolder}\\src\\TargetProgram.cpp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

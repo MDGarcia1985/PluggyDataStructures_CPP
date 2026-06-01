@@ -3,7 +3,7 @@
  * Description: Declares menu prompting plus the command plugin registry and macro.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -15,13 +15,13 @@
 // named container llb = linked list browser
 namespace llb
 {
-    class WebsiteProgram;
+    class TargetProgram;
 
     struct CommandPlugin
     {
         int id;
         std::string label;
-        std::function<void(WebsiteProgram&)> action;
+        std::function<void(TargetProgram&)> action;
     };
 
     class CommandRegistry
@@ -44,6 +44,7 @@ namespace llb
         static void display(const std::vector<CommandPlugin>& commands);
         static int promptChoice();
         static int promptInteger(const std::string& prompt);
+        static std::string selectDataSource();
     };
 }
 
@@ -51,7 +52,7 @@ namespace llb
 #define LLB_DETAIL_CONCAT(first, second) LLB_DETAIL_CONCAT_IMPL(first, second)
 
 // Register a command from any .cpp file compiled into the project.
-// New plugin authors only need to include App.h and use this macro.
+// New command files include Menu.h and the controller header, then use this macro.
 #define LLB_REGISTER_COMMAND(ID, LABEL, FUNCTION)                                      \
     namespace                                                                          \
     {                                                                                  \

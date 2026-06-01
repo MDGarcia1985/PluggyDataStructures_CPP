@@ -1,136 +1,128 @@
 # LinkedListBrowser
 
-LinkedListBrowser is a C++ console program that stores website entries in a doubly linked list and lets the user move forward, move backward, add, delete, find, and display websites.
+LinkedListBrowser began as a website linked-list assignment. It originally loaded website names and URLs into a linked list and let the user browse, add, delete, search, and display those entries.
 
-The project is intentionally organized like a small repo instead of a single-file assignment. `main.cpp` stays minimal, and the rest of the program is split into focused modules.
+The project is now being refactored into a generic data-structure framework. The goal is to show that the linked list does not care what the record means. A record can represent a website, a text message, a task, an inventory item, or another simple two-field data type.
 
-## Project layout
+## Current Direction
+
+`Target` is the generic record type. It stores:
 
 ```text
-LinkedListBrowser/
-├── main.cpp
-├── README.md
-├── ARCHITECTURE.md
-├── include/
-│   ├── App.h
-│   ├── Header.h
-│   ├── Website.h
-│   ├── WebsiteList.h
-│   ├── WebsiteProgram.h
-│   ├── Menu.h
-│   ├── FileLoader.h
-│   └── Display.h
-├── src/
-│   ├── Website.cpp
-│   ├── WebsiteList.cpp
-│   ├── WebsiteProgram.cpp
-│   ├── Menu.cpp
-│   ├── FileLoader.cpp
-│   └── Display.cpp
-├── data/
-│   └── websites.txt
-└── tests/
-    └── ApplicationTests.cpp
+fieldOne
+fieldTwo
 ```
 
-## Build and run
+For `data/websites.txt`, `fieldOne` is the website name and `fieldTwo` is the URL.
 
-From the root directory:
+For `data/messages.txt`, `fieldOne` is the sender and `fieldTwo` is the message text.
+
+`TargetList` is the linked-list container. It owns the nodes, stores `Target` objects, supports navigation and search, and cleans up node memory in `clear()` and the destructor.
+
+`TargetStack` and `TargetQueue` demonstrate how the same generic target records can also be used for LIFO and FIFO behavior.
+
+## Data Flow
+
+```text
+data/<selected_file>
+-> FileLoader
+-> Target objects
+-> TargetList
+-> TargetProgram
+-> Menu
+-> Display
+```
+
+`Menu` lets the user select a data source. `FileLoader` reads the selected file from `data/`, parses pipe-delimited rows, and creates `Target` objects. `TargetProgram` coordinates the application, while `Display` handles output formatting only.
+
+## Project Layout
+
+```text
+include/
+  App.h
+  Display.h
+  FileLoader.h
+  Header.h
+  Menu.h
+  Target.h
+  TargetList.h
+  TargetProgram.h
+  TargetQueue.h
+  TargetStack.h
+
+src/
+  Display.cpp
+  FileLoader.cpp
+  Menu.cpp
+  Target.cpp
+  TargetList.cpp
+  TargetProgram.cpp
+  TargetQueue.cpp
+  TargetStack.cpp
+
+data/
+  websites.txt
+  messages.txt
+
+tests/
+  ApplicationTests.cpp
+
+main.cpp
+README.md
+ARCHITECTURE.md
+```
+
+## Sample Data Format
+
+Each non-comment line uses two fields separated by a pipe:
+
+```text
+First Field|Second Field
+```
+
+Examples:
+
+```text
+OpenAI|https://www.openai.com
+Maya|Can you review the linked-list code?
+```
+
+Blank lines, comment lines beginning with `#`, malformed rows, and rows with an empty field are skipped.
+
+## Build And Test
+
+Example test build:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/Target.cpp src/TargetList.cpp src/TargetStack.cpp src/TargetQueue.cpp src/Menu.cpp src/FileLoader.cpp src/Display.cpp src/TargetProgram.cpp -o ApplicationTests
+./ApplicationTests
+```
+
+Example app build:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp -o LinkedListBrowser
 ./LinkedListBrowser
 ```
 
+On Windows with MinGW, use `.exe` output names if preferred.
 
-On Windows PowerShell with MinGW:
+## Learning Purpose
 
-```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp -o LinkedListBrowser.exe
-.\LinkedListBrowser.exe
-```
+This project is intentionally written like a real modular C++ repo for learning purposes. The boundaries are deliberately separated:
 
+- `Target` models one generic record.
+- `TargetList` owns linked-list behavior.
+- `FileLoader` creates targets from selected files.
+- `TargetProgram` coordinates the application.
+- `Menu` collects user choices.
+- `Display` prints formatted output.
+- `Header.h` holds common includes, constants, and helpers only.
+- `App.h` is the top-level launch bundle for the entry point.
 
-## Run tests
+Function header notes should continue to explain:
 
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/Website.cpp src/WebsiteList.cpp src/Menu.cpp src/FileLoader.cpp src/Display.cpp src/WebsiteProgram.cpp -o ApplicationTests
-./ApplicationTests
-```
-
-
-On Windows PowerShell with MinGW:
-
-```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/Website.cpp src/WebsiteList.cpp src/Menu.cpp src/FileLoader.cpp src/Display.cpp src/WebsiteProgram.cpp -o ApplicationTests.exe
-.\ApplicationTests.exe
-```
-
-
-## Menu options
-
-```text
-1) Display the list
-2) Go forward and display the webpage
-3) Go backward and display the webpage
-4) Add another item to the list
-5) Delete an item from the list
-6) Find an item in the list
-7) Exit
-```
-
-## Data file format
-
-The starter websites are loaded from `data/websites.txt`.
-
-Each line uses this format:
-
-```text
-Website Name|Website URL
-```
-
-Lines starting with `#` are ignored.
-
-## Plugin-style command expansion
-
-The command menu is built from registered command plugins instead of hard-coded menu branches inside `main.cpp`. A new command can be added from a new `.cpp` file without editing `main.cpp`, `Menu.cpp`, or the linked-list classes.
-
-Example plugin file:
-
-```cpp
-#include "App.h"
-
-static void countWebsites(llb::WebsiteProgram& program)
-{
-    llb::Display::printMessage(
-        "Total websites: " + std::to_string(program.list().size()));
-}
-
-LLB_REGISTER_COMMAND(8, "Count websites", countWebsites)
-```
-
-Then compile the new plugin file with the rest of the project:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/CountWebsitesPlugin.cpp -o LinkedListBrowser
-```
-
-The core program does not need to know the plugin exists. The plugin registers itself through `LLB_REGISTER_COMMAND`.
-
-## Algorithm and structure sources
-
-Several algorithm and code-structure ideas came from my own C++ text game work, including menu-building patterns such as a `std::vector<std::string>` based `displayMainMenu` function.
-
-## Funtion Header Notes
-
-Funcitons include comment headers that explain:
-- Purpose -– Why the function exists.
-- Design -– The reasoning behind the implementation and any important architectural decisions.
-- Workflow -– The sequence of operations performed by the function.
-- Data Handoff -– The inputs, outputs, and how data is passed to other parts of the system.
-
-This commenting standard was developed over the past three years to improve long-term maintainability and knowledge transfer. It helps me quickly reestablish context when returning to a codebase after an extended period and provides junior developers with a clear understanding of why a function exists, how it operates, and how it fits into the broader system architecture.
-
-## License
-
-This project is licensed under the MIT License. See `LICENSE` for details.
+- Purpose - why the function exists.
+- Design - the reasoning behind the implementation.
+- Workflow - the sequence of operations performed.
+- Data Handoff - how data enters, leaves, or moves to another module.

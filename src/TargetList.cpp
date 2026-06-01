@@ -1,61 +1,61 @@
 /*
- * File: WebsiteList.cpp
+ * File: TargetList.cpp
  * Description: Implements linked-list node management, navigation, search, copy, and move behavior.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
-#include "WebsiteList.h"
+#include "TargetList.h"
 
 
 // named container llb = linked list browser
 namespace llb
 {
     /*
-     * Purpose: Build one linked-list node around a Website value.
-     * Design: Each node owns its Website data and stores links to the neighboring nodes.
-     * Workflow: Copy the provided Website and start with no next or previous neighbors.
-     * Data Handoff: Receives a Website from WebsiteList::addBack and stores it in the list chain.
+     * Purpose: Build one linked-list node around a Target value.
+     * Design: Each node owns its Target data and stores links to the neighboring nodes.
+     * Workflow: Copy the provided Target and start with no next or previous neighbors.
+     * Data Handoff: Receives a Target from TargetList::addBack and stores it in the list chain.
      */
-    WebsiteList::Node::Node(const Website& website)
-        : data(website), next(nullptr), previous(nullptr)
+    TargetList::Node::Node(const Target& target)
+        : data(target), next(nullptr), previous(nullptr)
     {
     }
 
     /*
-     * Purpose: Create an empty website list.
+     * Purpose: Create an empty Target list.
      * Design: Uses head, tail, and current pointers so the list can navigate both directions.
      * Workflow: Start all pointers at nullptr and the count at zero.
-     * Data Handoff: Produces a ready-to-fill list for FileLoader, WebsiteProgram, or tests.
+     * Data Handoff: Produces a ready-to-fill list for FileLoader, TargetProgram, or tests.
      */
-    WebsiteList::WebsiteList()
+    TargetList::TargetList()
         : head_(nullptr), tail_(nullptr), current_(nullptr), count_(0)
     {
     }
 
     /*
-     * Purpose: Create a deep copy of another WebsiteList.
+     * Purpose: Create a deep copy of another TargetList.
      * Design: Copies nodes instead of sharing pointers so the two lists can change independently.
      * Workflow: Copy into a temporary list, then swap that complete copy into this object.
-     * Data Handoff: Receives another list and produces this list with the same website values.
+     * Data Handoff: Receives another list and produces this list with the same Target values.
      */
-    WebsiteList::WebsiteList(const WebsiteList& other)
+    TargetList::TargetList(const TargetList& other)
         : head_(nullptr), tail_(nullptr), current_(nullptr), count_(0)
     {
-        WebsiteList temporaryCopy;
+        TargetList temporaryCopy;
         temporaryCopy.copyFrom(other);
         swap(temporaryCopy);
     }
 
     /*
-     * Purpose: Move another WebsiteList into this object without copying each node.
+     * Purpose: Move another TargetList into this object without copying each node.
      * Design: Transfers raw node pointers, then empties the source so nodes are not deleted twice.
      * Workflow: Take head, tail, current, and count from other, then reset other to an empty list.
      * Data Handoff: Receives ownership of another list's node chain.
      */
-    WebsiteList::WebsiteList(WebsiteList&& other) noexcept
+    TargetList::TargetList(TargetList&& other) noexcept
         : head_(other.head_), tail_(other.tail_), current_(other.current_), count_(other.count_)
     {
         other.head_ = nullptr;
@@ -70,11 +70,11 @@ namespace llb
      * Workflow: Copy the other list into a temporary object, then swap the internals.
      * Data Handoff: Receives values from other and returns this list by reference for assignment chaining.
      */
-    WebsiteList& WebsiteList::operator=(const WebsiteList& other)
+    TargetList& TargetList::operator=(const TargetList& other)
     {
         if (this != &other)
         {
-            WebsiteList temporaryCopy(other);
+            TargetList temporaryCopy(other);
             swap(temporaryCopy);
         }
 
@@ -87,7 +87,7 @@ namespace llb
      * Workflow: Guard against self-assignment, delete existing nodes, move pointers, and empty the source.
      * Data Handoff: Receives node ownership from other and returns this list by reference.
      */
-    WebsiteList& WebsiteList::operator=(WebsiteList&& other) noexcept
+    TargetList& TargetList::operator=(TargetList&& other) noexcept
     {
         if (this != &other)
         {
@@ -113,18 +113,18 @@ namespace llb
      * Workflow: Walk every node and delete it through clear().
      * Data Handoff: Gives memory back to the program when the list goes out of scope.
      */
-    WebsiteList::~WebsiteList()
+    TargetList::~TargetList()
     {
         clear();
     }
 
     /*
-     * Purpose: Remove every website from the list.
+     * Purpose: Remove every Target from the list.
      * Design: Walks forward through raw pointers and deletes each node exactly once.
      * Workflow: Save the next node before deleting the current node, then reset list state.
      * Data Handoff: Consumes the current node chain and leaves an empty list behind.
      */
-    void WebsiteList::clear()
+    void TargetList::clear()
     {
         Node* walker = head_;
 
@@ -142,36 +142,36 @@ namespace llb
     }
 
     /*
-     * Purpose: Report whether the list has no websites.
+     * Purpose: Report whether the list has no Targets.
      * Design: Uses the maintained count instead of walking the list.
      * Workflow: Compare count_ to zero.
      * Data Handoff: Returns a boolean to callers that need empty-list checks before acting.
      */
-    bool WebsiteList::isEmpty() const
+    bool TargetList::isEmpty() const
     {
         return count_ == 0;
     }
 
     /*
-     * Purpose: Report how many websites are stored.
+     * Purpose: Report how many Targets are stored.
      * Design: Returns the cached count for constant-time access.
      * Workflow: Read count_ directly.
      * Data Handoff: Gives callers the current list length without exposing node pointers.
      */
-    std::size_t WebsiteList::size() const
+    std::size_t TargetList::size() const
     {
         return count_;
     }
 
     /*
-     * Purpose: Add a website to the end of the list.
+     * Purpose: Add a Target to the end of the list.
      * Design: Maintains both head and tail pointers so appending does not require a full walk.
      * Workflow: Allocate a node, attach it after the tail, and update current if the list was empty.
-     * Data Handoff: Receives a Website value and stores a copy inside a new list node.
+     * Data Handoff: Receives a Target value and stores a copy inside a new list node.
      */
-    void WebsiteList::addBack(const Website& website)
+    void TargetList::addBack(const Target& target)
     {
-        Node* newNode = new Node(website);
+        Node* newNode = new Node(target);
 
         if (isEmpty())
         {
@@ -190,12 +190,12 @@ namespace llb
     }
 
     /*
-     * Purpose: Remove the website at a one-based position.
+     * Purpose: Remove the Target at a one-based position.
      * Design: Relinks neighboring nodes before deleting the selected node.
      * Workflow: Find the node, update current when needed, reconnect previous and next, then delete.
      * Data Handoff: Receives a user-facing position and returns whether removal succeeded.
      */
-    bool WebsiteList::removeAt(std::size_t position)
+    bool TargetList::removeAt(std::size_t position)
     {
         Node* nodeToDelete = nodeAt(position);
 
@@ -246,12 +246,12 @@ namespace llb
     }
 
     /*
-     * Purpose: Move the current pointer to the next website.
+     * Purpose: Move the current pointer to the next Target.
      * Design: Wraps from tail back to head so navigation can keep cycling.
      * Workflow: Reject empty lists, then advance current_ or wrap to head_.
      * Data Handoff: Updates internal navigation state and returns whether movement occurred.
      */
-    bool WebsiteList::moveForward()
+    bool TargetList::moveForward()
     {
         if (isEmpty())
         {
@@ -263,12 +263,12 @@ namespace llb
     }
 
     /*
-     * Purpose: Move the current pointer to the previous website.
+     * Purpose: Move the current pointer to the previous Target.
      * Design: Wraps from head back to tail so reverse navigation can keep cycling.
      * Workflow: Reject empty lists, then move current_ backward or wrap to tail_.
      * Data Handoff: Updates internal navigation state and returns whether movement occurred.
      */
-    bool WebsiteList::moveBackward()
+    bool TargetList::moveBackward()
     {
         if (isEmpty())
         {
@@ -280,12 +280,12 @@ namespace llb
     }
 
     /*
-     * Purpose: Select a website by its one-based list position.
+     * Purpose: Select a Target by its one-based list position.
      * Design: Reuses nodeAt() so position validation stays in one helper.
      * Workflow: Find the node for the position and make it the current node when found.
      * Data Handoff: Receives a menu/search position and returns whether selection succeeded.
      */
-    bool WebsiteList::setCurrentToPosition(std::size_t position)
+    bool TargetList::setCurrentToPosition(std::size_t position)
     {
         Node* selectedNode = nodeAt(position);
 
@@ -299,12 +299,12 @@ namespace llb
     }
 
     /*
-     * Purpose: Read the currently selected website.
-     * Design: Returns a pointer so nullptr can represent no current website.
-     * Workflow: Check current_, then return the address of the node's Website data.
-     * Data Handoff: Gives Display or WebsiteProgram read-only access to the current Website.
+     * Purpose: Read the currently selected Target.
+     * Design: Returns a pointer so nullptr can represent no current Target.
+     * Workflow: Check current_, then return the address of the node's Target data.
+     * Data Handoff: Gives Display or TargetProgram read-only access to the current Target.
      */
-    const Website* WebsiteList::current() const
+    const Target* TargetList::current() const
     {
         if (current_ == nullptr)
         {
@@ -318,9 +318,9 @@ namespace llb
      * Purpose: Convert the current node pointer into a one-based position.
      * Design: Walks from head because nodes store links, not numeric indexes.
      * Workflow: Count each node until current_ is found, or return zero if no match exists.
-     * Data Handoff: Gives Display a user-friendly position label for the current website.
+     * Data Handoff: Gives Display a user-friendly position label for the current Target.
      */
-    std::size_t WebsiteList::currentPosition() const
+    std::size_t TargetList::currentPosition() const
     {
         std::size_t position = 1;
         Node* walker = head_;
@@ -340,35 +340,35 @@ namespace llb
     }
 
     /*
-     * Purpose: Copy all website values into a vector.
+     * Purpose: Copy all Target values into a vector.
      * Design: Keeps node pointers private while providing a simple container for display and tests.
-     * Workflow: Reserve enough space, walk the nodes, and push each Website into the vector.
-     * Data Handoff: Returns a std::vector<Website> snapshot to callers.
+     * Workflow: Reserve enough space, walk the nodes, and push each Target into the vector.
+     * Data Handoff: Returns a std::vector<Target> snapshot to callers.
      */
-    std::vector<Website> WebsiteList::toVector() const
+    std::vector<Target> TargetList::toVector() const
     {
-        std::vector<Website> websites;
-        websites.reserve(count_);
+        std::vector<Target> targets;
+        targets.reserve(count_);
 
         Node* walker = head_;
         while (walker != nullptr)
         {
-            websites.push_back(walker->data);
+            targets.push_back(walker->data);
             walker = walker->next;
         }
 
-        return websites;
+        return targets;
     }
 
     /*
-     * Purpose: Find every website whose name or URL matches a search term.
-     * Design: Stores both the one-based position and Website copy so results can be displayed and selected.
-     * Workflow: Walk the list, ask each Website if it matches, and collect successful matches.
-     * Data Handoff: Returns search result records to WebsiteProgram and Display.
+     * Purpose: Find every Target whose stored fields match a search term.
+     * Design: Stores both the one-based position and Target copy so results can be displayed and selected.
+     * Workflow: Walk the list, ask each Target if it matches, and collect successful matches.
+     * Data Handoff: Returns search result records to TargetProgram and Display.
      */
-    std::vector<WebsiteSearchResult> WebsiteList::findAll(const std::string& searchTerm) const
+    std::vector<TargetSearchResult> TargetList::findAll(const std::string& searchTerm) const
     {
-        std::vector<WebsiteSearchResult> results;
+        std::vector<TargetSearchResult> results;
 
         Node* walker = head_;
         std::size_t position = 1;
@@ -377,7 +377,7 @@ namespace llb
         {
             if (walker->data.matches(searchTerm))
             {
-                results.push_back(WebsiteSearchResult{position, walker->data});
+                results.push_back(TargetSearchResult{position, walker->data});
             }
 
             walker = walker->next;
@@ -389,12 +389,12 @@ namespace llb
 
 
     /*
-     * Purpose: Exchange the internal state of two WebsiteList objects.
+     * Purpose: Exchange the internal state of two TargetList objects.
      * Design: Swaps only pointers and count, which is faster than copying nodes.
      * Workflow: Use std::swap on head, tail, current, and count.
      * Data Handoff: Moves ownership metadata between lists without changing the nodes themselves.
      */
-    void WebsiteList::swap(WebsiteList& other) noexcept
+    void TargetList::swap(TargetList& other) noexcept
     {
         using std::swap;
 
@@ -410,7 +410,7 @@ namespace llb
      * Workflow: Reject out-of-range positions, then walk forward until the requested node is reached.
      * Data Handoff: Returns an internal Node pointer to list methods, or nullptr for invalid input.
      */
-    WebsiteList::Node* WebsiteList::nodeAt(std::size_t position) const
+    TargetList::Node* TargetList::nodeAt(std::size_t position) const
     {
         if (position < 1 || position > count_)
         {
@@ -430,10 +430,10 @@ namespace llb
     /*
      * Purpose: Append copies of every node from another list.
      * Design: Uses addBack() so head, tail, current, and count stay consistent.
-     * Workflow: Remember the source current position, copy each Website, then restore matching current position.
+     * Workflow: Remember the source current position, copy each Target, then restore matching current position.
      * Data Handoff: Receives another list's values and duplicates them into this list.
      */
-    void WebsiteList::copyFrom(const WebsiteList& other)
+    void TargetList::copyFrom(const TargetList& other)
     {
         Node* walker = other.head_;
         std::size_t otherCurrentPosition = other.currentPosition();
@@ -450,3 +450,4 @@ namespace llb
         }
     }
 }
+

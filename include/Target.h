@@ -1,9 +1,9 @@
 /*
- * File: Website.h
- * Description: Declares the Website value object used for names, URLs, and matching.
+ * File: Target.h
+ * Description: Declares the generic Target value object used for simple two-field records.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -15,23 +15,23 @@
 // named container llb = linked list browser
 namespace llb
 {
-    class Website
+    class Target
     {
     private:
-        std::string name_;
-        std::string url_;
+        std::string fieldOne_;
+        std::string fieldTwo_;
 
         static std::string toLowerCopy(std::string text);
 
     public:
-        Website();
-        Website(std::string name, std::string url);
+        Target();
+        Target(std::string fieldOne, std::string fieldTwo);
 
-        const std::string& name() const;
-        const std::string& url() const;
+        const std::string& fieldOne() const;
+        const std::string& fieldTwo() const;
 
-        void setName(const std::string& name);
-        void setUrl(const std::string& url);
+        void setFieldOne(const std::string& fieldOne);
+        void setFieldTwo(const std::string& fieldTwo);
 
         bool matches(const std::string& searchTerm) const;
         std::string toDisplayString() const;

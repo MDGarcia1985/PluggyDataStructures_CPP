@@ -1,5 +1,7 @@
-#Format
-#   SenderIdentifier|MessageContents
+# Format:
+#    Field One|Field Two
+# Sample meaning:
+#    SenderIdentifier|MessageContents
 
 Person1|Hey, are you still coming over?
 Person2|Yep, I just left the house.

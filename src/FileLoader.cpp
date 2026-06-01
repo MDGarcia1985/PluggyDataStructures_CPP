@@ -1,9 +1,9 @@
 /*
  * File: FileLoader.cpp
- * Description: Implements website data parsing, trimming, and fallback seed entries.
+ * Description: Implements generic target data parsing, trimming, and fallback seed entries.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -14,12 +14,12 @@
 namespace llb
 {
     /*
-     * Purpose: Load website records from a text file into a WebsiteList.
-     * Design: Uses a simple pipe-delimited format so data can be edited by hand.
-     * Workflow: Open the file, skip comments or malformed lines, trim fields, and append valid websites.
-     * Data Handoff: Receives a file path and mutable WebsiteList, then returns true when at least one row loads.
+     * Purpose: Load generic two-field records from a text file into a TargetList.
+     * Design: Uses a simple pipe-delimited format so different sample data can be edited by hand.
+     * Workflow: Open the selected file, skip comments or malformed lines, trim fields, and append valid targets.
+     * Data Handoff: Receives a file path and mutable TargetList, then returns true when at least one row loads.
      */
-    bool FileLoader::loadWebsitesFromFile(const std::string& filePath, WebsiteList& websites)
+    bool FileLoader::loadTargetsFromFile(const std::string& filePath, TargetList& targets)
     {
         std::ifstream inputFile(filePath);
 
@@ -46,12 +46,12 @@ namespace llb
                 continue;
             }
 
-            std::string name = trim(line.substr(0, separatorIndex));
-            std::string url = trim(line.substr(separatorIndex + 1));
+            std::string fieldOne = trim(line.substr(0, separatorIndex));
+            std::string fieldTwo = trim(line.substr(separatorIndex + 1));
 
-            if (!name.empty() && !url.empty())
+            if (!fieldOne.empty() && !fieldTwo.empty())
             {
-                websites.addBack(Website(name, url));
+                targets.addBack(Target(fieldOne, fieldTwo));
                 ++loadedCount;
             }
         }
@@ -60,33 +60,33 @@ namespace llb
     }
 
     /*
-     * Purpose: Provide starter website data when the file is missing or empty.
-     * Design: Keeps fallback values in code so the app can still run without external data.
-     * Workflow: Append each built-in Website to the provided list.
-     * Data Handoff: Receives a mutable WebsiteList and fills it with default Website objects.
+     * Purpose: Provide starter target data when the selected file is missing or empty.
+     * Design: Keeps fallback values generic so the app can still demonstrate the data structure.
+     * Workflow: Append each built-in Target to the provided list.
+     * Data Handoff: Receives a mutable TargetList and fills it with default Target objects.
      */
-    void FileLoader::loadFallbackWebsites(WebsiteList& websites)
+    void FileLoader::loadFallbackTargets(TargetList& targets)
     {
-        websites.addBack(Website("Google", "https://www.google.com"));
-        websites.addBack(Website("YouTube", "https://www.youtube.com"));
-        websites.addBack(Website("Wikipedia", "https://www.wikipedia.org"));
-        websites.addBack(Website("GitHub", "https://www.github.com"));
-        websites.addBack(Website("Stack Overflow", "https://stackoverflow.com"));
-        websites.addBack(Website("Reddit", "https://www.reddit.com"));
-        websites.addBack(Website("Amazon", "https://www.amazon.com"));
-        websites.addBack(Website("Apple", "https://www.apple.com"));
-        websites.addBack(Website("Microsoft", "https://www.microsoft.com"));
-        websites.addBack(Website("OpenAI", "https://www.openai.com"));
-        websites.addBack(Website("LinkedIn", "https://www.linkedin.com"));
-        websites.addBack(Website("Netflix", "https://www.netflix.com"));
-        websites.addBack(Website("CNN", "https://www.cnn.com"));
-        websites.addBack(Website("BBC", "https://www.bbc.com"));
-        websites.addBack(Website("ESPN", "https://www.espn.com"));
-        websites.addBack(Website("Khan Academy", "https://www.khanacademy.org"));
-        websites.addBack(Website("Coursera", "https://www.coursera.org"));
-        websites.addBack(Website("Mozilla", "https://www.mozilla.org"));
-        websites.addBack(Website("W3Schools", "https://www.w3schools.com"));
-        websites.addBack(Website("GeeksforGeeks", "https://www.geeksforgeeks.org"));
+        targets.addBack(Target("Google", "https://www.google.com"));
+        targets.addBack(Target("YouTube", "https://www.youtube.com"));
+        targets.addBack(Target("Wikipedia", "https://www.wikipedia.org"));
+        targets.addBack(Target("GitHub", "https://www.github.com"));
+        targets.addBack(Target("Stack Overflow", "https://stackoverflow.com"));
+        targets.addBack(Target("Reddit", "https://www.reddit.com"));
+        targets.addBack(Target("Amazon", "https://www.amazon.com"));
+        targets.addBack(Target("Apple", "https://www.apple.com"));
+        targets.addBack(Target("Microsoft", "https://www.microsoft.com"));
+        targets.addBack(Target("OpenAI", "https://www.openai.com"));
+        targets.addBack(Target("LinkedIn", "https://www.linkedin.com"));
+        targets.addBack(Target("Netflix", "https://www.netflix.com"));
+        targets.addBack(Target("CNN", "https://www.cnn.com"));
+        targets.addBack(Target("BBC", "https://www.bbc.com"));
+        targets.addBack(Target("ESPN", "https://www.espn.com"));
+        targets.addBack(Target("Khan Academy", "https://www.khanacademy.org"));
+        targets.addBack(Target("Coursera", "https://www.coursera.org"));
+        targets.addBack(Target("Mozilla", "https://www.mozilla.org"));
+        targets.addBack(Target("W3Schools", "https://www.w3schools.com"));
+        targets.addBack(Target("GeeksforGeeks", "https://www.geeksforgeeks.org"));
     }
 
     /*

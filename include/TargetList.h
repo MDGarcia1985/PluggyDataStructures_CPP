@@ -1,37 +1,37 @@
 /*
- * File: WebsiteList.h
- * Description: Declares the doubly linked list that stores and navigates websites.
+ * File: TargetList.h
+ * Description: Declares the doubly linked list that stores and navigates generic targets.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
 #pragma once
 
 #include "Header.h"
-#include "Website.h"
+#include "Target.h"
 
 
 // named container llb = linked list browser
 namespace llb
 {
-    struct WebsiteSearchResult
+    struct TargetSearchResult
     {
         std::size_t position;
-        Website website;
+        Target target;
     };
 
-    class WebsiteList
+    class TargetList
     {
     private:
         struct Node
         {
-            Website data;
+            Target data;
             Node* next;
             Node* previous;
 
-            explicit Node(const Website& website);
+            explicit Node(const Target& target);
         };
 
         Node* head_;
@@ -40,32 +40,32 @@ namespace llb
         std::size_t count_;
 
         Node* nodeAt(std::size_t position) const;
-        void copyFrom(const WebsiteList& other);
-        void swap(WebsiteList& other) noexcept;
+        void copyFrom(const TargetList& other);
+        void swap(TargetList& other) noexcept;
 
     public:
-        WebsiteList();
-        WebsiteList(const WebsiteList& other);
-        WebsiteList(WebsiteList&& other) noexcept;
-        WebsiteList& operator=(const WebsiteList& other);
-        WebsiteList& operator=(WebsiteList&& other) noexcept;
-        ~WebsiteList();
+        TargetList();
+        TargetList(const TargetList& other);
+        TargetList(TargetList&& other) noexcept;
+        TargetList& operator=(const TargetList& other);
+        TargetList& operator=(TargetList&& other) noexcept;
+        ~TargetList();
 
         void clear();
         bool isEmpty() const;
         std::size_t size() const;
 
-        void addBack(const Website& website);
+        void addBack(const Target& target);
         bool removeAt(std::size_t position);
 
         bool moveForward();
         bool moveBackward();
         bool setCurrentToPosition(std::size_t position);
 
-        const Website* current() const;
+        const Target* current() const;
         std::size_t currentPosition() const;
 
-        std::vector<Website> toVector() const;
-        std::vector<WebsiteSearchResult> findAll(const std::string& searchTerm) const;
+        std::vector<Target> toVector() const;
+        std::vector<TargetSearchResult> findAll(const std::string& searchTerm) const;
     };
 }

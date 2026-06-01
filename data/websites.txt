@@ -1,4 +1,6 @@
-# Format: 
+# Format:
+#    Field One|Field Two
+# Sample meaning:
 #    Website Name|Website URL
 
     

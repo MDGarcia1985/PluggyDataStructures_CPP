@@ -3,7 +3,7 @@
  * Description: Implements console rendering for titles, lists, current items, and search results.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -40,87 +40,88 @@ namespace llb
         }
 
         /*
-         * Purpose: Print one website, optionally with a numbered list position.
-         * Design: Uses Website::toDisplayString() so formatting rules stay with the Website object.
-         * Workflow: Print the position when provided, then print the formatted website text.
-         * Data Handoff: Receives a Website and optional position, then writes display text to std::cout.
+         * Purpose: Print one Target, optionally with a numbered list position.
+         * Design: Uses Target::toDisplayString() so formatting rules stay with the Target object.
+         * Workflow: Print the position when provided, then print the formatted Target text.
+         * Data Handoff: Receives a Target and optional position, then writes display text to std::cout.
          */
-        void printWebsite(const Website& website, std::size_t position)
+        void printTarget(const Target& target, std::size_t position)
         {
             if (position > 0)
             {
                 std::cout << position << ") ";
             }
 
-            std::cout << website.toDisplayString() << '\n';
+            std::cout << target.toDisplayString() << '\n';
         }
 
         /*
-         * Purpose: Print every website in a list.
+         * Purpose: Print every Target in a list.
          * Design: Works from a vector snapshot so Display does not need access to linked-list nodes.
-         * Workflow: Handle the empty case, print a heading, then print each website with a one-based number.
-         * Data Handoff: Receives std::vector<Website> from WebsiteList::toVector().
+         * Workflow: Handle the empty case, print a heading, then print each Target with a one-based number.
+         * Data Handoff: Receives std::vector<Target> from TargetList::toVector().
          */
-        void printWebsiteList(const std::vector<Website>& websites)
+        void printTargetList(const std::vector<Target>& targets)
         {
-            if (websites.empty())
+            if (targets.empty())
             {
-                printMessage("The website list is empty.");
+                printMessage("The target list is empty.");
                 return;
             }
 
-            std::cout << "\nWebsite List:\n";
+            std::cout << "\nTarget List:\n";
 
-            for (std::size_t i = 0; i < websites.size(); ++i)
+            for (std::size_t i = 0; i < targets.size(); ++i)
             {
-                printWebsite(websites[i], i + 1);
+                printTarget(targets[i], i + 1);
             }
         }
 
         /*
-         * Purpose: Print the currently selected website.
-         * Design: Accepts a pointer so nullptr can cleanly represent "no current website."
-         * Workflow: Show an empty-state message for nullptr, otherwise print the position and website.
-         * Data Handoff: Receives current Website data and position from WebsiteList.
+         * Purpose: Print the currently selected Target.
+         * Design: Accepts a pointer so nullptr can cleanly represent "no current Target."
+         * Workflow: Show an empty-state message for nullptr, otherwise print the position and Target.
+         * Data Handoff: Receives current Target data and position from TargetList.
          */
-        void printCurrentWebsite(const Website* website, std::size_t position)
+        void printCurrentTarget(const Target* target, std::size_t position)
         {
-            if (website == nullptr)
+            if (target == nullptr)
             {
-                printMessage("No current webpage to display.");
+                printMessage("No current record to display.");
                 return;
             }
 
-            std::cout << "\nCurrent Webpage";
+            std::cout << "\nCurrent record";
             if (position > 0)
             {
                 std::cout << " [" << position << "]";
             }
             std::cout << ":\n";
 
-            printWebsite(*website);
+            printTarget(*target);
         }
 
         /*
          * Purpose: Print all search matches.
-         * Design: Uses WebsiteSearchResult so each displayed item keeps its original list position.
-         * Workflow: Handle no matches, print a heading, then print each result's website and position.
-         * Data Handoff: Receives search results from WebsiteList::findAll().
+         * Design: Uses TargetSearchResult so each displayed item keeps its original list position.
+         * Workflow: Handle no matches, print a heading, then print each result's Target and position.
+         * Data Handoff: Receives search results from TargetList::findAll().
          */
-        void printSearchResults(const std::vector<WebsiteSearchResult>& results)
+        void printSearchResults(const std::vector<TargetSearchResult>& results)
         {
             if (results.empty())
             {
-                printMessage("No matching website found.");
+                printMessage("No matching target found.");
                 return;
             }
 
             std::cout << "\nSearch Results:\n";
 
-            for (const WebsiteSearchResult& result : results)
+            for (const TargetSearchResult& result : results)
             {
-                printWebsite(result.website, result.position);
+                printTarget(result.target, result.position);
             }
         }
     }
 }
+

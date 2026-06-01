@@ -1,13 +1,16 @@
 /*
- * File: WebsiteProgram.cpp
- * Description: Implements built-in commands and the main controller loop for the browser.
+ * File: TargetProgram.cpp
+ * Description: Implements built-in commands and the main controller loop for generic targets.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
-#include "App.h"
+#include "Display.h"
+#include "FileLoader.h"
+#include "Menu.h"
+#include "TargetProgram.h"
 
 
 // named container llb = linked list browser
@@ -16,78 +19,78 @@ namespace llb
     namespace
     {
         /*
-         * Purpose: Adapt the display-list menu command to the WebsiteProgram method.
+         * Purpose: Adapt the display-list menu command to the TargetProgram method.
          * Design: Keeps command registration simple by using a free function with the expected signature.
          * Workflow: Receive the active program and call displayList().
          * Data Handoff: Passes control from the command registry into the controller object.
          */
-        void displayListCommand(WebsiteProgram& program)
+        void displayListCommand(TargetProgram& program)
         {
             program.displayList();
         }
 
         /*
-         * Purpose: Adapt the forward-navigation menu command to the WebsiteProgram method.
+         * Purpose: Adapt the forward-navigation menu command to the TargetProgram method.
          * Design: Uses the same command function signature as every other menu action.
          * Workflow: Receive the active program and call goForward().
          * Data Handoff: Passes user menu intent into the controller object.
          */
-        void goForwardCommand(WebsiteProgram& program)
+        void goForwardCommand(TargetProgram& program)
         {
             program.goForward();
         }
 
         /*
-         * Purpose: Adapt the backward-navigation menu command to the WebsiteProgram method.
+         * Purpose: Adapt the backward-navigation menu command to the TargetProgram method.
          * Design: Uses a tiny wrapper so command registration does not expose class internals.
          * Workflow: Receive the active program and call goBackward().
          * Data Handoff: Passes user menu intent into the controller object.
          */
-        void goBackwardCommand(WebsiteProgram& program)
+        void goBackwardCommand(TargetProgram& program)
         {
             program.goBackward();
         }
 
         /*
-         * Purpose: Adapt the add-website menu command to the WebsiteProgram method.
+         * Purpose: Adapt the add-target menu command to the TargetProgram method.
          * Design: Keeps the command registry independent from member-function pointer syntax.
-         * Workflow: Receive the active program and call addWebsiteFromUser().
+         * Workflow: Receive the active program and call addTargetFromUser().
          * Data Handoff: Passes user menu intent into the controller object.
          */
-        void addWebsiteCommand(WebsiteProgram& program)
+        void addTargetCommand(TargetProgram& program)
         {
-            program.addWebsiteFromUser();
+            program.addTargetFromUser();
         }
 
         /*
-         * Purpose: Adapt the delete-website menu command to the WebsiteProgram method.
+         * Purpose: Adapt the delete-target menu command to the TargetProgram method.
          * Design: Uses the shared command signature required by CommandPlugin.
-         * Workflow: Receive the active program and call deleteWebsiteFromUser().
+         * Workflow: Receive the active program and call deleteTargetFromUser().
          * Data Handoff: Passes user menu intent into the controller object.
          */
-        void deleteWebsiteCommand(WebsiteProgram& program)
+        void deleteTargetCommand(TargetProgram& program)
         {
-            program.deleteWebsiteFromUser();
+            program.deleteTargetFromUser();
         }
 
         /*
-         * Purpose: Adapt the find-website menu command to the WebsiteProgram method.
-         * Design: Keeps search behavior inside WebsiteProgram while exposing it as a menu command.
-         * Workflow: Receive the active program and call findWebsiteFromUser().
+         * Purpose: Adapt the find-target menu command to the TargetProgram method.
+         * Design: Keeps search behavior inside TargetProgram while exposing it as a menu command.
+         * Workflow: Receive the active program and call findTargetFromUser().
          * Data Handoff: Passes user menu intent into the controller object.
          */
-        void findWebsiteCommand(WebsiteProgram& program)
+        void findTargetCommand(TargetProgram& program)
         {
-            program.findWebsiteFromUser();
+            program.findTargetFromUser();
         }
 
         /*
          * Purpose: Handle the exit menu command.
-         * Design: Requests exit through WebsiteProgram instead of directly breaking the main loop here.
+         * Design: Requests exit through TargetProgram instead of directly breaking the main loop here.
          * Workflow: Print an exit message, then set the program's exit flag.
-         * Data Handoff: Sends user intent into WebsiteProgram::requestExit().
+         * Data Handoff: Sends user intent into TargetProgram::requestExit().
          */
-        void exitCommand(WebsiteProgram& program)
+        void exitCommand(TargetProgram& program)
         {
             Display::printMessage("Exiting program.");
             program.requestExit();
@@ -96,37 +99,38 @@ namespace llb
 }
 
 LLB_REGISTER_COMMAND(1, "Display the list", llb::displayListCommand)
-LLB_REGISTER_COMMAND(2, "Go forward and display the webpage", llb::goForwardCommand)
-LLB_REGISTER_COMMAND(3, "Go backward and display the webpage", llb::goBackwardCommand)
-LLB_REGISTER_COMMAND(4, "Add another item to the list", llb::addWebsiteCommand)
-LLB_REGISTER_COMMAND(5, "Delete an item from the list", llb::deleteWebsiteCommand)
-LLB_REGISTER_COMMAND(6, "Find an item in the list", llb::findWebsiteCommand)
+LLB_REGISTER_COMMAND(2, "Go forward and display the current target", llb::goForwardCommand)
+LLB_REGISTER_COMMAND(3, "Go backward and display the current target", llb::goBackwardCommand)
+LLB_REGISTER_COMMAND(4, "Add another target to the list", llb::addTargetCommand)
+LLB_REGISTER_COMMAND(5, "Delete a target from the list", llb::deleteTargetCommand)
+LLB_REGISTER_COMMAND(6, "Find a target in the list", llb::findTargetCommand)
 LLB_REGISTER_COMMAND(7, "Exit", llb::exitCommand)
 
 namespace llb
 {
     /*
      * Purpose: Build the application controller.
-     * Design: Stores the website list, exit flag, and data file path together in one controller object.
+     * Design: Stores the target list, exit flag, and data file path together in one controller object.
      * Workflow: Start with an empty list, no exit request, and the provided data file path.
      * Data Handoff: Receives the file path used later by loadInitialData().
      */
-    WebsiteProgram::WebsiteProgram(std::string dataFilePath)
-        : websites_(), exitRequested_(false), dataFilePath_(std::move(dataFilePath))
+    TargetProgram::TargetProgram(std::string dataFilePath)
+        : targets_(), exitRequested_(false), dataFilePath_(std::move(dataFilePath))
     {
     }
 
     /*
-     * Purpose: Run the interactive website browser.
+     * Purpose: Run the interactive generic data-structure browser.
      * Design: Uses registered commands so menu behavior can expand without hard-coding every action here.
-     * Workflow: Print the title, load data, loop until exit, display commands, read a choice, and run the command.
-     * Data Handoff: Moves user input from Menu into CommandRegistry, then into command actions.
+     * Workflow: Print the title, select data, load it, loop until exit, display commands, read a choice, and run it.
+     * Data Handoff: Moves data-source and command input from Menu into TargetProgram and CommandRegistry.
      */
-    void WebsiteProgram::run()
+    void TargetProgram::run()
     {
         Display::printTitle();
+        dataFilePath_ = Menu::selectDataSource();
         loadInitialData();
-        Display::printMessage("Loaded " + std::to_string(websites_.size()) + " website(s).");
+        Display::printMessage("Loaded " + std::to_string(targets_.size()) + " target(s).");
 
         while (!exitRequested_)
         {
@@ -147,18 +151,18 @@ namespace llb
     }
 
     /*
-     * Purpose: Populate the website list before the menu loop starts.
-     * Design: Tries external data first and falls back to built-in data when loading fails.
-     * Workflow: Clear any existing list, load from the data file, then load fallback websites if needed.
-     * Data Handoff: Sends dataFilePath_ and websites_ into FileLoader.
+     * Purpose: Populate the target list before the menu loop starts.
+     * Design: Tries selected data first and falls back to built-in data when loading fails.
+     * Workflow: Clear any existing list, load from the data file, then load fallback targets if needed.
+     * Data Handoff: Sends dataFilePath_ and targets_ into FileLoader.
      */
-    void WebsiteProgram::loadInitialData()
+    void TargetProgram::loadInitialData()
     {
-        websites_.clear();
+        targets_.clear();
 
-        if (!FileLoader::loadWebsitesFromFile(dataFilePath_, websites_))
+        if (!FileLoader::loadTargetsFromFile(dataFilePath_, targets_))
         {
-            FileLoader::loadFallbackWebsites(websites_);
+            FileLoader::loadFallbackTargets(targets_);
         }
     }
 
@@ -168,7 +172,7 @@ namespace llb
      * Workflow: Set exitRequested_ to true.
      * Data Handoff: Receives exit intent from the exit command.
      */
-    void WebsiteProgram::requestExit()
+    void TargetProgram::requestExit()
     {
         exitRequested_ = true;
     }
@@ -179,66 +183,66 @@ namespace llb
      * Workflow: Return the current value of exitRequested_.
      * Data Handoff: Gives the run loop and tests the current exit state.
      */
-    bool WebsiteProgram::exitRequested() const
+    bool TargetProgram::exitRequested() const
     {
         return exitRequested_;
     }
 
     /*
-     * Purpose: Provide mutable access to the website list.
+     * Purpose: Provide mutable access to the target list.
      * Design: Exposes the list for tests and internal workflows that need to modify it.
-     * Workflow: Return websites_ by reference.
-     * Data Handoff: Gives callers direct access to the controller's WebsiteList.
+     * Workflow: Return targets_ by reference.
+     * Data Handoff: Gives callers direct access to the controller's TargetList.
      */
-    WebsiteList& WebsiteProgram::list()
+    TargetList& TargetProgram::list()
     {
-        return websites_;
+        return targets_;
     }
 
     /*
-     * Purpose: Provide read-only access to the website list.
-     * Design: Supports const WebsiteProgram objects without allowing list mutation.
-     * Workflow: Return websites_ by const reference.
-     * Data Handoff: Gives callers read access to the controller's WebsiteList.
+     * Purpose: Provide read-only access to the target list.
+     * Design: Supports const TargetProgram objects without allowing list mutation.
+     * Workflow: Return targets_ by const reference.
+     * Data Handoff: Gives callers read access to the controller's TargetList.
      */
-    const WebsiteList& WebsiteProgram::list() const
+    const TargetList& TargetProgram::list() const
     {
-        return websites_;
+        return targets_;
     }
 
     /*
-     * Purpose: Display all websites currently stored in the list.
+     * Purpose: Display all targets currently stored in the list.
      * Design: Converts the linked list to a vector so Display does not depend on node internals.
-     * Workflow: Ask WebsiteList for a vector snapshot, then pass it to Display.
-     * Data Handoff: Moves website data from WebsiteList to Display as std::vector<Website>.
+     * Workflow: Ask TargetList for a vector snapshot, then pass it to Display.
+     * Data Handoff: Moves target data from TargetList to Display as std::vector<Target>.
      */
-    void WebsiteProgram::displayList() const
+    void TargetProgram::displayList() const
     {
-        Display::printWebsiteList(websites_.toVector());
+        Display::printTargetList(targets_.toVector());
     }
 
     /*
-     * Purpose: Display the currently selected website.
-     * Design: Keeps current pointer logic inside WebsiteList and output formatting inside Display.
-     * Workflow: Ask the list for current Website and position, then pass both to Display.
-     * Data Handoff: Moves current selection data from WebsiteList to Display.
+     * Purpose: Display the currently selected target.
+     * Design: Keeps current pointer logic inside TargetList and output formatting inside Display.
+     * Workflow: Ask the list for current Target and position, then pass both to Display.
+     * Data Handoff: Moves current selection data from TargetList to Display.
      */
-    void WebsiteProgram::displayCurrent() const
+    void TargetProgram::displayCurrent() const
     {
-        Display::printCurrentWebsite(websites_.current(), websites_.currentPosition());
+        Display::printCurrentTarget(targets_.current(), targets_.currentPosition());
     }
 
     /*
-     * Purpose: Move forward one website and show the result.
-     * Design: Lets WebsiteList handle wraparound navigation and empty-list detection.
+     * Purpose: Move forward one target and show the result.
+     * Design: Lets TargetList handle wraparound navigation and empty-list detection.
      * Workflow: Try to move forward, print an empty message if it fails, otherwise display current.
-     * Data Handoff: Receives a success flag from WebsiteList and sends display data to Display.
+     * Data Handoff: Receives a success flag from TargetList and sends display data to Display.
      */
-    void WebsiteProgram::goForward()
+    void TargetProgram::goForward()
     {
-        if (!websites_.moveForward())
+        if (!targets_.moveForward())
         {
-            Display::printMessage("The website list is empty.");
+            Display::printMessage("The target list is empty.");
             return;
         }
 
@@ -246,16 +250,16 @@ namespace llb
     }
 
     /*
-     * Purpose: Move backward one website and show the result.
-     * Design: Lets WebsiteList handle wraparound navigation and empty-list detection.
+     * Purpose: Move backward one target and show the result.
+     * Design: Lets TargetList handle wraparound navigation and empty-list detection.
      * Workflow: Try to move backward, print an empty message if it fails, otherwise display current.
-     * Data Handoff: Receives a success flag from WebsiteList and sends display data to Display.
+     * Data Handoff: Receives a success flag from TargetList and sends display data to Display.
      */
-    void WebsiteProgram::goBackward()
+    void TargetProgram::goBackward()
     {
-        if (!websites_.moveBackward())
+        if (!targets_.moveBackward())
         {
-            Display::printMessage("The website list is empty.");
+            Display::printMessage("The target list is empty.");
             return;
         }
 
@@ -263,74 +267,74 @@ namespace llb
     }
 
     /*
-     * Purpose: Add a new website from user input.
-     * Design: Keeps input collection in the controller and storage mechanics in WebsiteList.
-     * Workflow: Prompt for name and URL, reject blanks, create a Website, and append it.
-     * Data Handoff: Moves console input into a Website object, then into websites_.
+     * Purpose: Add a new generic target from user input.
+     * Design: Keeps input collection in the controller and storage mechanics in TargetList.
+     * Workflow: Prompt for two fields, reject blanks, create a Target, and append it.
+     * Data Handoff: Moves console input into a Target object, then into targets_.
      */
-    void WebsiteProgram::addWebsiteFromUser()
+    void TargetProgram::addTargetFromUser()
     {
-        std::string name;
-        std::string url;
+        std::string fieldOne;
+        std::string fieldTwo;
 
-        std::cout << "\nEnter website name: ";
-        std::getline(std::cin, name);
+        std::cout << "\nEnter first field: ";
+        std::getline(std::cin, fieldOne);
 
-        std::cout << "Enter website URL: ";
-        std::getline(std::cin, url);
+        std::cout << "Enter second field: ";
+        std::getline(std::cin, fieldTwo);
 
-        if (name.empty() || url.empty())
+        if (fieldOne.empty() || fieldTwo.empty())
         {
-            Display::printMessage("Website name and URL cannot be empty.");
+            Display::printMessage("Both target fields are required.");
             return;
         }
 
-        websites_.addBack(Website(name, url));
-        Display::printMessage("Website added successfully.");
+        targets_.addBack(Target(fieldOne, fieldTwo));
+        Display::printMessage("Target added successfully.");
     }
 
     /*
-     * Purpose: Delete a website selected by the user.
-     * Design: Shows numbered list positions so the user can choose by the same one-based index WebsiteList expects.
+     * Purpose: Delete a target selected by the user.
+     * Design: Shows numbered list positions so the user can choose by the same one-based index TargetList expects.
      * Workflow: Check for empty list, display the list, prompt for a position, then remove that position.
-     * Data Handoff: Moves a numeric choice from Menu into WebsiteList::removeAt().
+     * Data Handoff: Moves a numeric choice from Menu into TargetList::removeAt().
      */
-    void WebsiteProgram::deleteWebsiteFromUser()
+    void TargetProgram::deleteTargetFromUser()
     {
-        if (websites_.isEmpty())
+        if (targets_.isEmpty())
         {
-            Display::printMessage("The website list is empty.");
+            Display::printMessage("The target list is empty.");
             return;
         }
 
         displayList();
-        const int position = Menu::promptInteger("\nEnter the number of the website to delete: ");
+        const int position = Menu::promptInteger("\nEnter the number of the target to delete: ");
 
-        if (position < 1 || !websites_.removeAt(static_cast<std::size_t>(position)))
+        if (position < 1 || !targets_.removeAt(static_cast<std::size_t>(position)))
         {
-            Display::printMessage("Invalid position. No website was deleted.");
+            Display::printMessage("Invalid position. No target was deleted.");
             return;
         }
 
-        Display::printMessage("Website deleted successfully.");
+        Display::printMessage("Target deleted successfully.");
     }
 
     /*
-     * Purpose: Search websites by name or URL and select the first match.
-     * Design: WebsiteList performs matching while Display handles result formatting.
+     * Purpose: Search targets by either field and select the first match.
+     * Design: TargetList performs matching while Display handles result formatting.
      * Workflow: Prompt for a search term, reject blanks, display matches, and set current to the first result.
-     * Data Handoff: Moves user text into WebsiteList::findAll(), then uses result positions to update current.
+     * Data Handoff: Moves user text into TargetList::findAll(), then uses result positions to update current.
      */
-    void WebsiteProgram::findWebsiteFromUser()
+    void TargetProgram::findTargetFromUser()
     {
-        if (websites_.isEmpty())
+        if (targets_.isEmpty())
         {
-            Display::printMessage("The website list is empty.");
+            Display::printMessage("The target list is empty.");
             return;
         }
 
         std::string searchTerm;
-        std::cout << "\nEnter website name or URL to search for: ";
+        std::cout << "\nEnter text to search for: ";
         std::getline(std::cin, searchTerm);
 
         if (searchTerm.empty())
@@ -339,25 +343,25 @@ namespace llb
             return;
         }
 
-        const std::vector<WebsiteSearchResult> results = websites_.findAll(searchTerm);
+        const std::vector<TargetSearchResult> results = targets_.findAll(searchTerm);
         Display::printSearchResults(results);
 
         if (!results.empty())
         {
-            websites_.setCurrentToPosition(results.front().position);
-            Display::printMessage("Current webpage set to the first matching result.");
+            targets_.setCurrentToPosition(results.front().position);
+            Display::printMessage("Current target set to the first matching result.");
         }
     }
 
     /*
      * Purpose: Provide a simple entry point for main.cpp.
      * Design: Keeps main.cpp tiny by creating and running the controller here.
-     * Workflow: Construct WebsiteProgram, run it, and return a process success code.
+     * Workflow: Construct TargetProgram, run it, and return a process success code.
      * Data Handoff: Hands control from main.cpp to the application controller.
      */
     int runApp()
     {
-        WebsiteProgram program;
+        TargetProgram program;
         program.run();
         return 0;
     }

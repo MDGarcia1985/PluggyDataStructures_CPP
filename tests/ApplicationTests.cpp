@@ -1,4 +1,9 @@
-#include "App.h"
+#include "Display.h"
+#include "FileLoader.h"
+#include "Menu.h"
+#include "TargetProgram.h"
+#include "TargetQueue.h"
+#include "TargetStack.h"
 
 #include <cstdio>
 #include <sstream>
@@ -81,87 +86,108 @@ namespace
         output << contents;
     }
 
-    void testWebsiteModel()
+    void testTargetModel()
     {
-        llb::Website website("OpenAI", "https://www.openai.com");
+        llb::Target target("OpenAI", "https://www.openai.com");
 
-        expectEqual(website.name(), "OpenAI", "Website stores name.");
-        expectEqual(website.url(), "https://www.openai.com", "Website stores URL.");
-        expectEqual(website.toDisplayString(), "OpenAI - https://www.openai.com", "Website formats display text.");
-        expect(website.matches("openai"), "Website matches lowercase name search.");
-        expect(website.matches("OPENAI.COM"), "Website matches uppercase URL search.");
-        expect(!website.matches("example"), "Website rejects non-matching search.");
+        expectEqual(target.fieldOne(), "OpenAI", "Target stores first field.");
+        expectEqual(target.fieldTwo(), "https://www.openai.com", "Target stores second field.");
+        expectEqual(target.toDisplayString(), "OpenAI - https://www.openai.com", "Target formats display text.");
+        expect(target.matches("openai"), "Target matches lowercase first-field search.");
+        expect(target.matches("OPENAI.COM"), "Target matches uppercase second-field search.");
+        expect(!target.matches("example"), "Target rejects non-matching search.");
 
-        website.setName("Example");
-        website.setUrl("https://example.com");
+        target.setFieldOne("Example");
+        target.setFieldTwo("https://example.com");
 
-        expectEqual(website.name(), "Example", "Website updates name.");
-        expectEqual(website.url(), "https://example.com", "Website updates URL.");
+        expectEqual(target.fieldOne(), "Example", "Target updates first field.");
+        expectEqual(target.fieldTwo(), "https://example.com", "Target updates second field.");
     }
 
-    void testWebsiteListDataStructure()
+    void testTargetListDataStructure()
     {
-        llb::WebsiteList websites;
+        llb::TargetList targets;
 
-        expect(websites.isEmpty(), "New list starts empty.");
-        expectEqual(websites.size(), 0, "New list size is zero.");
-        expect(websites.current() == nullptr, "New list has no current website.");
-        expect(!websites.moveForward(), "Empty list cannot move forward.");
-        expect(!websites.moveBackward(), "Empty list cannot move backward.");
+        expect(targets.isEmpty(), "New list starts empty.");
+        expectEqual(targets.size(), 0, "New list size is zero.");
+        expect(targets.current() == nullptr, "New list has no current target.");
+        expect(!targets.moveForward(), "Empty list cannot move forward.");
+        expect(!targets.moveBackward(), "Empty list cannot move backward.");
 
-        websites.addBack(llb::Website("Alpha", "https://alpha.test"));
-        websites.addBack(llb::Website("Beta", "https://beta.test"));
-        websites.addBack(llb::Website("Gamma", "https://gamma.test"));
+        targets.addBack(llb::Target("Alpha", "https://alpha.test"));
+        targets.addBack(llb::Target("Beta", "https://beta.test"));
+        targets.addBack(llb::Target("Gamma", "https://gamma.test"));
 
-        expectEqual(websites.size(), 3, "List tracks added websites.");
-        expectEqual(websites.current()->name(), "Alpha", "First added website becomes current.");
+        expectEqual(targets.size(), 3, "List tracks added targets.");
+        expectEqual(targets.current()->fieldOne(), "Alpha", "First added target becomes current.");
 
-        expect(websites.moveForward(), "List moves forward.");
-        expectEqual(websites.current()->name(), "Beta", "Forward movement selects second website.");
-        expect(websites.moveForward(), "List moves forward again.");
-        expectEqual(websites.current()->name(), "Gamma", "Forward movement selects third website.");
-        expect(websites.moveForward(), "Forward movement wraps.");
-        expectEqual(websites.current()->name(), "Alpha", "Forward wrap selects first website.");
+        expect(targets.moveForward(), "List moves forward.");
+        expectEqual(targets.current()->fieldOne(), "Beta", "Forward movement selects second target.");
+        expect(targets.moveForward(), "List moves forward again.");
+        expectEqual(targets.current()->fieldOne(), "Gamma", "Forward movement selects third target.");
+        expect(targets.moveForward(), "Forward movement wraps.");
+        expectEqual(targets.current()->fieldOne(), "Alpha", "Forward wrap selects first target.");
 
-        expect(websites.moveBackward(), "List moves backward.");
-        expectEqual(websites.current()->name(), "Gamma", "Backward movement wraps to tail.");
+        expect(targets.moveBackward(), "List moves backward.");
+        expectEqual(targets.current()->fieldOne(), "Gamma", "Backward movement wraps to tail.");
 
-        expect(websites.setCurrentToPosition(2), "List sets current by position.");
-        expectEqual(websites.current()->name(), "Beta", "Position selection chooses expected website.");
-        expectEqual(websites.currentPosition(), 2, "List reports current position.");
+        expect(targets.setCurrentToPosition(2), "List sets current by position.");
+        expectEqual(targets.current()->fieldOne(), "Beta", "Position selection chooses expected target.");
+        expectEqual(targets.currentPosition(), 2, "List reports current position.");
 
-        std::vector<llb::WebsiteSearchResult> results = websites.findAll("TA");
+        std::vector<llb::TargetSearchResult> results = targets.findAll("TA");
         expectEqual(results.size(), 1, "Search finds case-insensitive result.");
         expectEqual(results.front().position, 2, "Search reports one-based position.");
-        expectEqual(results.front().website.name(), "Beta", "Search returns matched website.");
+        expectEqual(results.front().target.fieldOne(), "Beta", "Search returns matched target.");
 
-        expect(websites.removeAt(2), "List removes selected position.");
-        expectEqual(websites.size(), 2, "List size decreases after remove.");
-        expectEqual(websites.current()->name(), "Gamma", "Removing current advances to next website.");
-        expect(!websites.removeAt(42), "List rejects invalid remove position.");
+        expect(targets.removeAt(2), "List removes selected position.");
+        expectEqual(targets.size(), 2, "List size decreases after remove.");
+        expectEqual(targets.current()->fieldOne(), "Gamma", "Removing current advances to next target.");
+        expect(!targets.removeAt(42), "List rejects invalid remove position.");
 
-        const std::vector<llb::Website> values = websites.toVector();
+        const std::vector<llb::Target> values = targets.toVector();
         expectEqual(values.size(), 2, "List converts to vector.");
-        expectEqual(values[0].name(), "Alpha", "Vector keeps first remaining website.");
-        expectEqual(values[1].name(), "Gamma", "Vector keeps second remaining website.");
+        expectEqual(values[0].fieldOne(), "Alpha", "Vector keeps first remaining target.");
+        expectEqual(values[1].fieldOne(), "Gamma", "Vector keeps second remaining target.");
 
-        llb::WebsiteList copied(websites);
-        expectEqual(copied.size(), websites.size(), "Copy constructor copies size.");
-        expectEqual(copied.current()->name(), websites.current()->name(), "Copy constructor preserves current website.");
+        llb::TargetList copied(targets);
+        expectEqual(copied.size(), targets.size(), "Copy constructor copies size.");
+        expectEqual(copied.current()->fieldOne(), targets.current()->fieldOne(),
+            "Copy constructor preserves current target.");
 
-        llb::WebsiteList assigned;
-        assigned = websites;
-        expectEqual(assigned.size(), websites.size(), "Copy assignment copies size.");
-        expectEqual(assigned.current()->name(), websites.current()->name(), "Copy assignment preserves current website.");
+        llb::TargetList assigned;
+        assigned = targets;
+        expectEqual(assigned.size(), targets.size(), "Copy assignment copies size.");
+        expectEqual(assigned.current()->fieldOne(), targets.current()->fieldOne(),
+            "Copy assignment preserves current target.");
 
-        llb::WebsiteList moved(std::move(copied));
+        llb::TargetList moved(std::move(copied));
         expectEqual(moved.size(), 2, "Move constructor transfers nodes.");
         expect(copied.isEmpty(), "Move constructor leaves source empty.");
     }
 
+    void testStackAndQueue()
+    {
+        llb::TargetStack stack;
+        stack.push(llb::Target("First", "1"));
+        stack.push(llb::Target("Second", "2"));
+
+        expectEqual(stack.pop().fieldOne(), "Second", "Stack pops most recently pushed target.");
+        expectEqual(stack.pop().fieldOne(), "First", "Stack pops older target second.");
+        expect(stack.isEmpty(), "Stack reports empty after pops.");
+
+        llb::TargetQueue queue;
+        queue.enqueue(llb::Target("First", "1"));
+        queue.enqueue(llb::Target("Second", "2"));
+
+        expectEqual(queue.dequeue().fieldOne(), "First", "Queue dequeues oldest target first.");
+        expectEqual(queue.dequeue().fieldOne(), "Second", "Queue dequeues newer target second.");
+        expect(queue.isEmpty(), "Queue reports empty after dequeues.");
+    }
+
     void testFileLoadingLayer()
     {
-        const std::string path = "tests/tmp_websites_test.txt";
+        const std::string path = "tests/tmp_targets_test.txt";
 
         writeFile(path,
             "# comment line\n"
@@ -170,27 +196,27 @@ namespace
             "No Url |   \n"
             "Beta Site|https://beta.test\n");
 
-        llb::WebsiteList loaded;
-        expect(llb::FileLoader::loadWebsitesFromFile(path, loaded), "File loader loads valid rows.");
+        llb::TargetList loaded;
+        expect(llb::FileLoader::loadTargetsFromFile(path, loaded), "File loader loads valid rows.");
         expectEqual(loaded.size(), 2, "File loader skips comments, malformed rows, and incomplete rows.");
-        expectEqual(loaded.toVector()[0].name(), "Alpha Site", "File loader trims website names.");
-        expectEqual(loaded.toVector()[0].url(), "https://alpha.test", "File loader trims website URLs.");
-        expectEqual(loaded.toVector()[1].name(), "Beta Site", "File loader loads later valid rows.");
+        expectEqual(loaded.toVector()[0].fieldOne(), "Alpha Site", "File loader trims first fields.");
+        expectEqual(loaded.toVector()[0].fieldTwo(), "https://alpha.test", "File loader trims second fields.");
+        expectEqual(loaded.toVector()[1].fieldOne(), "Beta Site", "File loader loads later valid rows.");
 
-        llb::WebsiteList missing;
-        expect(!llb::FileLoader::loadWebsitesFromFile("tests/does_not_exist.txt", missing),
+        llb::TargetList missing;
+        expect(!llb::FileLoader::loadTargetsFromFile("tests/does_not_exist.txt", missing),
             "File loader reports missing file.");
         expect(missing.isEmpty(), "Missing file leaves list empty.");
 
         writeFile(path, "# only comments\n\ninvalid\n");
 
-        llb::WebsiteList empty;
-        expect(!llb::FileLoader::loadWebsitesFromFile(path, empty), "File loader reports no loaded websites.");
+        llb::TargetList empty;
+        expect(!llb::FileLoader::loadTargetsFromFile(path, empty), "File loader reports no loaded targets.");
         expect(empty.isEmpty(), "Empty data file leaves list empty.");
 
-        llb::FileLoader::loadFallbackWebsites(empty);
-        expectEqual(empty.size(), 20, "Fallback loader adds built-in websites.");
-        expectEqual(empty.toVector().front().name(), "Google", "Fallback loader starts with Google.");
+        llb::FileLoader::loadFallbackTargets(empty);
+        expectEqual(empty.size(), 20, "Fallback loader adds built-in targets.");
+        expectEqual(empty.toVector().front().fieldOne(), "Google", "Fallback loader starts with Google.");
 
         std::remove(path.c_str());
     }
@@ -199,39 +225,39 @@ namespace
     {
         {
             ScopedCoutCapture output;
-            llb::Display::printWebsite(llb::Website("Alpha", "https://alpha.test"), 3);
-            expect(contains(output.text(), "3) Alpha - https://alpha.test"), "Display prints numbered website.");
+            llb::Display::printTarget(llb::Target("Alpha", "https://alpha.test"), 3);
+            expect(contains(output.text(), "3) Alpha - https://alpha.test"), "Display prints numbered target.");
         }
 
         {
             ScopedCoutCapture output;
-            llb::Display::printWebsiteList(std::vector<llb::Website>());
-            expect(contains(output.text(), "The website list is empty."), "Display prints empty list message.");
+            llb::Display::printTargetList(std::vector<llb::Target>());
+            expect(contains(output.text(), "The target list is empty."), "Display prints empty list message.");
         }
 
         {
-            std::vector<llb::Website> websites;
-            websites.push_back(llb::Website("Alpha", "https://alpha.test"));
-            websites.push_back(llb::Website("Beta", "https://beta.test"));
+            std::vector<llb::Target> targets;
+            targets.push_back(llb::Target("Alpha", "https://alpha.test"));
+            targets.push_back(llb::Target("Beta", "https://beta.test"));
 
             ScopedCoutCapture output;
-            llb::Display::printWebsiteList(websites);
-            expect(contains(output.text(), "Website List:"), "Display prints list heading.");
+            llb::Display::printTargetList(targets);
+            expect(contains(output.text(), "Target List:"), "Display prints list heading.");
             expect(contains(output.text(), "1) Alpha - https://alpha.test"), "Display prints first list item.");
             expect(contains(output.text(), "2) Beta - https://beta.test"), "Display prints second list item.");
         }
 
         {
             ScopedCoutCapture output;
-            llb::Display::printCurrentWebsite(nullptr, 0);
-            expect(contains(output.text(), "No current webpage to display."), "Display handles null current website.");
+            llb::Display::printCurrentTarget(nullptr, 0);
+            expect(contains(output.text(), "No current record to display."), "Display handles null current target.");
         }
     }
 
     void testMenuAndCommandLayer()
     {
         bool commandRan = false;
-        llb::CommandPlugin command{98, "Test command", [&commandRan](llb::WebsiteProgram&)
+        llb::CommandPlugin command{98, "Test command", [&commandRan](llb::TargetProgram&)
             {
                 commandRan = true;
             }};
@@ -243,7 +269,7 @@ namespace
         expect(!llb::CommandRegistry::instance().registerCommand(llb::CommandPlugin{99, "", command.action}),
             "Command registry rejects empty label.");
 
-        llb::WebsiteProgram program;
+        llb::TargetProgram program;
         const llb::CommandPlugin* found = llb::CommandRegistry::instance().findById(98);
         expect(found != nullptr, "Command registry finds registered command.");
         found->action(program);
@@ -257,13 +283,19 @@ namespace
 
         {
             std::vector<llb::CommandPlugin> menuCommands;
-            menuCommands.push_back(llb::CommandPlugin{2, "Second", [](llb::WebsiteProgram&) {}});
-            menuCommands.push_back(llb::CommandPlugin{1, "First", [](llb::WebsiteProgram&) {}});
+            menuCommands.push_back(llb::CommandPlugin{2, "Second", [](llb::TargetProgram&) {}});
+            menuCommands.push_back(llb::CommandPlugin{1, "First", [](llb::TargetProgram&) {}});
 
             ScopedCoutCapture output;
             llb::Menu::display(menuCommands);
             expect(contains(output.text(), "2) Second"), "Menu displays command labels.");
             expect(contains(output.text(), "1) First"), "Menu displays all command labels.");
+        }
+
+        {
+            ScopedCinInput input("2\n");
+            ScopedCoutCapture output;
+            expectEqual(llb::Menu::selectDataSource(), "data/messages.txt", "Menu selects messages file.");
         }
 
         {
@@ -280,48 +312,48 @@ namespace
         const std::string path = "tests/tmp_program_data.txt";
         writeFile(path, "Alpha|https://alpha.test\nBeta|https://beta.test\nGamma|https://gamma.test\n");
 
-        llb::WebsiteProgram program(path);
+        llb::TargetProgram program(path);
         program.loadInitialData();
 
         expectEqual(program.list().size(), 3, "Program loads initial data into its list.");
-        expectEqual(program.list().current()->name(), "Alpha", "Program starts at first loaded website.");
+        expectEqual(program.list().current()->fieldOne(), "Alpha", "Program starts at first loaded target.");
 
         {
             ScopedCoutCapture output;
             program.goForward();
-            expectEqual(program.list().current()->name(), "Beta", "Program moves forward through list.");
-            expect(contains(output.text(), "Current Webpage [2]"), "Program displays current website after forward move.");
+            expectEqual(program.list().current()->fieldOne(), "Beta", "Program moves forward through list.");
+            expect(contains(output.text(), "Current record [2]"), "Program displays current target after forward move.");
         }
 
         {
             ScopedCoutCapture output;
             program.goBackward();
-            expectEqual(program.list().current()->name(), "Alpha", "Program moves backward through list.");
-            expect(contains(output.text(), "Current Webpage [1]"), "Program displays current website after backward move.");
+            expectEqual(program.list().current()->fieldOne(), "Alpha", "Program moves backward through list.");
+            expect(contains(output.text(), "Current record [1]"), "Program displays current target after backward move.");
         }
 
         {
             ScopedCinInput input("Gamma\n");
             ScopedCoutCapture output;
-            program.findWebsiteFromUser();
-            expectEqual(program.list().current()->name(), "Gamma", "Program search sets current to first match.");
+            program.findTargetFromUser();
+            expectEqual(program.list().current()->fieldOne(), "Gamma", "Program search sets current to first match.");
             expect(contains(output.text(), "Search Results:"), "Program displays search results.");
         }
 
         {
             ScopedCinInput input("Delta\nhttps://delta.test\n");
             ScopedCoutCapture output;
-            program.addWebsiteFromUser();
-            expectEqual(program.list().size(), 4, "Program adds website from user input.");
-            expect(contains(output.text(), "Website added successfully."), "Program reports successful add.");
+            program.addTargetFromUser();
+            expectEqual(program.list().size(), 4, "Program adds target from user input.");
+            expect(contains(output.text(), "Target added successfully."), "Program reports successful add.");
         }
 
         {
             ScopedCinInput input("4\n");
             ScopedCoutCapture output;
-            program.deleteWebsiteFromUser();
-            expectEqual(program.list().size(), 3, "Program deletes website from user input.");
-            expect(contains(output.text(), "Website deleted successfully."), "Program reports successful delete.");
+            program.deleteTargetFromUser();
+            expectEqual(program.list().size(), 3, "Program deletes target from user input.");
+            expect(contains(output.text(), "Target deleted successfully."), "Program reports successful delete.");
         }
 
         expect(!program.exitRequested(), "Program starts without exit requested.");
@@ -336,8 +368,9 @@ int main()
 {
     try
     {
-        testWebsiteModel();
-        testWebsiteListDataStructure();
+        testTargetModel();
+        testTargetListDataStructure();
+        testStackAndQueue();
         testFileLoadingLayer();
         testDisplayLayer();
         testMenuAndCommandLayer();

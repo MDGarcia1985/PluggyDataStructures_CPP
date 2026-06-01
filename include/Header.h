@@ -3,7 +3,7 @@
  * Description: Shared standard library includes and project-wide constants.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
- * Website: https://mandedesign.studio
+ * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
@@ -31,4 +31,5 @@ namespace llb
 {
     inline constexpr const char* APP_NAME = "LinkedListBrowser";
     inline constexpr const char* DEFAULT_DATA_FILE = "data/websites.txt";
+    inline constexpr const char* DATA_DIRECTORY = "data/";
 }
