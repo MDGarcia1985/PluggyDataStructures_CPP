@@ -1,0 +1,23 @@
+#Format
+#   SenderIdentifier|MessageContents
+
+Person1|Hey, are you still coming over?
+Person2|Yep, I just left the house.
+Person1|Great. Do you want coffee when you get here?
+Person2|That sounds good. Black coffee please.
+Person1|No problem. Traffic looks pretty heavy downtown.
+Person2|I noticed. I'm taking the side roads instead.
+Person1|Good idea. The front door will be unlocked.
+Person2|Perfect. I should be there in about ten minutes.
+Person1|I finished reviewing the project notes.
+Person2|Excellent. I brought the updated drawings.
+Person1|That will save us some time.
+Person2|I also found a solution to the linked list bug.
+Person1|Nice! Was it the pointer issue?
+Person2|Yep. One of the nodes wasn't updating correctly.
+Person1|Glad you found it before the demo.
+Person2|Me too. That could have been embarrassing.
+Person1|Let me know when you pull into the driveway.
+Person2|Just parked.
+Person1|Come on in.
+Person2|Walking up to the door now.
