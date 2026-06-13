@@ -1,111 +1,19 @@
 /*
  * File: TargetProgram.cpp
- * Description: Implements built-in commands and the main controller loop for generic targets.
+ * Description: Implements core business operations for the active target list.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
  * Site: https://mandedesign.studio
  * SPDX-License-Identifier: MIT
  */
 
-#include "Display.h"
-#include "FileLoader.h"
-#include "Menu.h"
-#include "TargetProgram.h"
+#include "core/TargetProgram.h"
+#include "io/FileLoader.h"
+#include "ui/Display.h"
+#include "ui/Menu.h"
 
 
 // named container llb = linked list browser
-namespace llb
-{
-    namespace
-    {
-        /*
-         * Purpose: Adapt the display-list menu command to the TargetProgram method.
-         * Design: Keeps command registration simple by using a free function with the expected signature.
-         * Workflow: Receive the active program and call displayList().
-         * Data Handoff: Passes control from the command registry into the controller object.
-         */
-        void displayListCommand(TargetProgram& program)
-        {
-            program.displayList();
-        }
-
-        /*
-         * Purpose: Adapt the forward-navigation menu command to the TargetProgram method.
-         * Design: Uses the same command function signature as every other menu action.
-         * Workflow: Receive the active program and call goForward().
-         * Data Handoff: Passes user menu intent into the controller object.
-         */
-        void goForwardCommand(TargetProgram& program)
-        {
-            program.goForward();
-        }
-
-        /*
-         * Purpose: Adapt the backward-navigation menu command to the TargetProgram method.
-         * Design: Uses a tiny wrapper so command registration does not expose class internals.
-         * Workflow: Receive the active program and call goBackward().
-         * Data Handoff: Passes user menu intent into the controller object.
-         */
-        void goBackwardCommand(TargetProgram& program)
-        {
-            program.goBackward();
-        }
-
-        /*
-         * Purpose: Adapt the add-target menu command to the TargetProgram method.
-         * Design: Keeps the command registry independent from member-function pointer syntax.
-         * Workflow: Receive the active program and call addTargetFromUser().
-         * Data Handoff: Passes user menu intent into the controller object.
-         */
-        void addTargetCommand(TargetProgram& program)
-        {
-            program.addTargetFromUser();
-        }
-
-        /*
-         * Purpose: Adapt the delete-target menu command to the TargetProgram method.
-         * Design: Uses the shared command signature required by CommandPlugin.
-         * Workflow: Receive the active program and call deleteTargetFromUser().
-         * Data Handoff: Passes user menu intent into the controller object.
-         */
-        void deleteTargetCommand(TargetProgram& program)
-        {
-            program.deleteTargetFromUser();
-        }
-
-        /*
-         * Purpose: Adapt the find-target menu command to the TargetProgram method.
-         * Design: Keeps search behavior inside TargetProgram while exposing it as a menu command.
-         * Workflow: Receive the active program and call findTargetFromUser().
-         * Data Handoff: Passes user menu intent into the controller object.
-         */
-        void findTargetCommand(TargetProgram& program)
-        {
-            program.findTargetFromUser();
-        }
-
-        /*
-         * Purpose: Handle the exit menu command.
-         * Design: Requests exit through TargetProgram instead of directly breaking the main loop here.
-         * Workflow: Print an exit message, then set the program's exit flag.
-         * Data Handoff: Sends user intent into TargetProgram::requestExit().
-         */
-        void exitCommand(TargetProgram& program)
-        {
-            Display::printMessage("Exiting program.");
-            program.requestExit();
-        }
-    }
-}
-
-LLB_REGISTER_COMMAND(1, "Display the list", llb::displayListCommand)
-LLB_REGISTER_COMMAND(2, "Go forward and display the current target", llb::goForwardCommand)
-LLB_REGISTER_COMMAND(3, "Go backward and display the current target", llb::goBackwardCommand)
-LLB_REGISTER_COMMAND(4, "Add another target to the list", llb::addTargetCommand)
-LLB_REGISTER_COMMAND(5, "Delete a target from the list", llb::deleteTargetCommand)
-LLB_REGISTER_COMMAND(6, "Find a target in the list", llb::findTargetCommand)
-LLB_REGISTER_COMMAND(7, "Exit", llb::exitCommand)
-
 namespace llb
 {
     /*
@@ -120,34 +28,14 @@ namespace llb
     }
 
     /*
-     * Purpose: Run the interactive generic data-structure browser.
-     * Design: Uses registered commands so menu behavior can expand without hard-coding every action here.
-     * Workflow: Print the title, select data, load it, loop until exit, display commands, read a choice, and run it.
-     * Data Handoff: Moves data-source and command input from Menu into TargetProgram and CommandRegistry.
+     * Purpose: Change the dataset path used by the next load operation.
+     * Design: Keeps file path state private while allowing MainMenu to provide a user selection.
+     * Workflow: Move the supplied path into dataFilePath_.
+     * Data Handoff: Receives a path from DataSourceMenu through MainMenu for FileLoader use.
      */
-    void TargetProgram::run()
+    void TargetProgram::setDataFilePath(std::string dataFilePath)
     {
-        Display::printTitle();
-        dataFilePath_ = Menu::selectDataSource();
-        loadInitialData();
-        Display::printMessage("Loaded " + std::to_string(targets_.size()) + " target(s).");
-
-        while (!exitRequested_)
-        {
-            const std::vector<CommandPlugin> commands = CommandRegistry::instance().commands();
-            Menu::display(commands);
-
-            const int menuChoice = Menu::promptChoice();
-            const CommandPlugin* command = CommandRegistry::instance().findById(menuChoice);
-
-            if (command == nullptr)
-            {
-                Display::printMessage("Invalid option. Please choose a listed command.");
-                continue;
-            }
-
-            command->action(*this);
-        }
+        dataFilePath_ = std::move(dataFilePath);
     }
 
     /*
@@ -308,13 +196,8 @@ namespace llb
         }
 
         displayList();
-        const int position = Menu::promptInteger("\nEnter the number of the target to delete: ");
-
-        if (position < 1 || !targets_.removeAt(static_cast<std::size_t>(position)))
-        {
-            Display::printMessage("Invalid position. No target was deleted.");
-            return;
-        }
+        const std::size_t selectedIndex = Menu::promptSelection(targets_.size());
+        targets_.removeAt(selectedIndex + 1);
 
         Display::printMessage("Target deleted successfully.");
     }
@@ -353,16 +236,4 @@ namespace llb
         }
     }
 
-    /*
-     * Purpose: Provide a simple entry point for main.cpp.
-     * Design: Keeps main.cpp tiny by creating and running the controller here.
-     * Workflow: Construct TargetProgram, run it, and return a process success code.
-     * Data Handoff: Hands control from main.cpp to the application controller.
-     */
-    int runApp()
-    {
-        TargetProgram program;
-        program.run();
-        return 0;
-    }
 }

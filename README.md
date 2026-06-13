@@ -1,158 +1,151 @@
 # LinkedListBrowser
 
-## Run Guide
+LinkedListBrowser is a C++17 learning project that loads TXT and CSV datasets into a doubly linked list. Its UI, registries, commands, sorting support, file loading, and core data structures are separated so new menu systems and plugins can be added without rewriting the generic menu layer.
 
-From the project root, build and run the app with a C++17 compiler:
+## Build And Run
+
+From the project root:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp \
+  src/app/*.cpp src/commands/*.cpp src/algorithms/*.cpp \
+  src/core/*.cpp src/io/*.cpp src/registry/*.cpp \
+  src/sorting/*.cpp src/ui/*.cpp \
+  -o LinkedListBrowser
 ./LinkedListBrowser
 ```
 
-To build and run the tests:
+Build and run tests:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o ApplicationTests
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp \
+  src/app/*.cpp src/commands/*.cpp src/algorithms/*.cpp \
+  src/core/*.cpp src/io/*.cpp src/registry/*.cpp \
+  src/sorting/*.cpp src/ui/*.cpp \
+  -o ApplicationTests
 ./ApplicationTests
 ```
 
-On Windows with MinGW, you can use `.exe` output names:
+On Windows, `.exe` output names may be used. The VS Code task in `.vscode/tasks.json` lists every reorganized source file for `cl.exe`.
 
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser.exe
-.\LinkedListBrowser.exe
-```
+## Dataset Support
 
-LinkedListBrowser began as a website linked-list assignment. It originally loaded website names and URLs into a linked list and let the user browse, add, delete, search, and display those entries.
-
-The project is now being refactored into a generic data-structure framework. The goal is to show that the linked list does not care what the record means. A record can represent a website, a text message, a task, an inventory item, or another simple two-field data type.
-
-## Current Direction
-
-`Target` is the generic record type. It stores:
+The startup flow scans `data/` and displays all regular files in filename order.
 
 ```text
-fieldOne
-fieldTwo
+.txt -> plain text/list loader
+.csv -> structured table loader
+other -> displayed as unsupported
 ```
 
-For `data/websites.txt`, `fieldOne` is the website name and `fieldTwo` is the URL.
+TXT files accept either `fieldOne|fieldTwo` records or ordinary one-item lines. CSV files use the first row as headings, map the first column to `Target::fieldOne()`, and store labeled remaining values in `fieldTwo()`.
 
-For `data/messages.txt`, `fieldOne` is the sender and `fieldTwo` is the message text.
-
-`TargetList` is the linked-list container. It owns the nodes, stores `Target` objects, supports navigation and search, and cleans up node memory in `clear()` and the destructor.
-
-`TargetStack` and `TargetQueue` demonstrate how the same generic target records can also be used for LIFO and FIFO behavior.
-
-## Data Flow
+## Menu Flow
 
 ```text
-data/<selected_file>
--> FileLoader
--> Target objects
--> TargetList
--> TargetProgram
--> Menu
--> Display
+MainMenu
+-> DataSourceMenu
+-> TargetDataStructureMenu
+-> registered command
+-> optional SortTypeMenu
+-> registered sorting algorithm
 ```
 
-`Menu` lets the user select a data source. `FileLoader` reads the selected file from `data/`, parses pipe-delimited rows, and creates `Target` objects. `TargetProgram` coordinates the application, while `Display` handles output formatting only.
+`Menu` is generic. It only displays string labels, prompts for numbers, validates ranges, returns selected positions, and prints the shared invalid-selection message.
+
+Menu-specific decisions live in dedicated controllers:
+
+- `MainMenu` starts the application flow.
+- `DataSourceMenu` discovers and classifies datasets.
+- `TargetDataStructureMenu` executes registered list commands.
+- `SortTypeMenu` executes registered sorting algorithms.
+
+## Plugin Registration
+
+Target/list commands are independent source files in `src/commands/`. Each defines a small adapter and registers it with `CommandRegistry`.
+
+```cpp
+LLB_REGISTER_COMMAND(9, "New command", llb::newCommand)
+```
+
+Exit commands use `LLB_REGISTER_EXIT_COMMAND`. `CommandRegistry` orders regular commands by ID and always moves Exit to the end.
+
+Sorting algorithms register with `SortRegistry`:
+
+```cpp
+LLB_REGISTER_SORT("Algorithm Name", llb::algorithmCommand)
+```
+
+`SortRegistry` owns its Exit item and returns it last. Adding an algorithm does not require changing `SortTypeMenu`.
 
 ## Project Layout
 
 ```text
 include/
-  App.h
-  Display.h
-  FileLoader.h
-  Header.h
-  Menu.h
-  ElectronicsSortSupport.h
-  Target.h
-  TargetList.h
-  TargetProgram.h
-  TargetQueue.h
-  TargetStack.h
+  app/
+    App.h
+  core/
+    Header.h
+    Target.h
+    TargetList.h
+    TargetProgram.h
+    TargetQueue.h
+    TargetStack.h
+  io/
+    FileLoader.h
+  registry/
+    RegistryBase.h
+    CommandRegistry.h
+    SortRegistry.h
+  sorting/
+    SortSupport.h
+  ui/
+    Display.h
+    Menu.h
+    MainMenu.h
+    DataSourceMenu.h
+    TargetDataStructureMenu.h
+    SortTypeMenu.h
 
 src/
+  app/
+    App.cpp
+  commands/
+    AddTargetCommand.cpp
+    DeleteTargetCommand.cpp
+    DisplayListCommand.cpp
+    ExitCommand.cpp
+    FindTargetCommand.cpp
+    MoveBackwardCommand.cpp
+    MoveForwardCommand.cpp
+    SortListCommand.cpp
   algorithms/
     InsertionSort.cpp
     SelectionSort.cpp
+  core/
+    Target.cpp
+    TargetList.cpp
+    TargetProgram.cpp
+    TargetQueue.cpp
+    TargetStack.cpp
+  io/
+    FileLoader.cpp
+  registry/
+    CommandRegistry.cpp
+    SortRegistry.cpp
+  sorting/
+    SortSupport.cpp
   ui/
     Display.cpp
     Menu.cpp
-  utils/
-    ElectronicsSortSupport.cpp
-    FileLoader.cpp
-  Target.cpp
-  TargetList.cpp
-  TargetProgram.cpp
-  TargetQueue.cpp
-  TargetStack.cpp
-
-data/
-  websites.txt
-  messages.txt
-
-tests/
-  ApplicationTests.cpp
-
-main.cpp
-README.md
-ARCHITECTURE.md
+    MainMenu.cpp
+    DataSourceMenu.cpp
+    TargetDataStructureMenu.cpp
+    SortTypeMenu.cpp
 ```
 
-## Sample Data Format
+## Extension Points
 
-Each non-comment line uses two fields separated by a pipe:
+Future systems such as tree, graph, hash table, or search menus can reuse `Menu` and follow the existing controller plus registry pattern. Their navigation and registration policies can remain independent from the target-list and sort registries.
 
-```text
-First Field|Second Field
-```
-
-Examples:
-
-```text
-OpenAI|https://www.openai.com
-Maya|Can you review the linked-list code?
-```
-
-Blank lines, comment lines beginning with `#`, malformed rows, and rows with an empty field are skipped.
-
-## Build And Test
-
-Example test build:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o ApplicationTests
-./ApplicationTests
-```
-
-Example app build:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser
-./LinkedListBrowser
-```
-
-On Windows with MinGW, use `.exe` output names if preferred.
-
-## Learning Purpose
-
-This project is intentionally written like a real modular C++ repo for learning purposes. The boundaries are deliberately separated:
-
-- `Target` models one generic record.
-- `TargetList` owns linked-list behavior.
-- `FileLoader` creates targets from selected files.
-- `TargetProgram` coordinates the application.
-- `Menu` collects user choices.
-- `Display` prints formatted output.
-- `Header.h` holds common includes, constants, and helpers only.
-- `App.h` is the top-level launch bundle for the entry point.
-
-Function header notes should continue to explain:
-
-- Purpose - why the function exists.
-- Design - the reasoning behind the implementation.
-- Workflow - the sequence of operations performed.
-- Data Handoff - how data enters, leaves, or moves to another module.
+New and modified functions use the standard `Purpose`, `Design`, `Workflow`, and `Data Handoff` header.

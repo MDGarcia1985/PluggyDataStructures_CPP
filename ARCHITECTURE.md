@@ -1,138 +1,181 @@
 # Architecture
 
-LinkedListBrowser started as a website-specific linked-list assignment. It is now moving toward a generic Target-based architecture that demonstrates reusable data structures.
+LinkedListBrowser separates reusable UI behavior, menu navigation, registration, business operations, data loading, and sorting.
 
-The central idea is simple: the linked list stores `Target` records, not websites, messages, tasks, or any other specific domain object. The meaning of each record comes from the selected data file and the user interface text around it.
-
-## Data Flow
+## Runtime Flow
 
 ```text
-data/<selected_file>
+main.cpp
+-> app/App.cpp
+-> MainMenu
+-> DataSourceMenu
 -> FileLoader
--> Target
 -> TargetList
--> TargetProgram
--> Menu
--> Display
+-> TargetDataStructureMenu
+-> CommandRegistry action
+-> optional SortTypeMenu
+-> SortRegistry action
+-> SortSupport
 ```
 
-`data/<selected_file>` is chosen by the user through `Menu`. Current sample files are `data/websites.txt` and `data/messages.txt`.
+`TargetProgram` owns the active `TargetList`, selected data path, and exit state. It implements list operations but does not register commands or render application menus.
 
-`FileLoader` reads the selected file, skips comments and malformed rows, splits valid rows into two pipe-delimited fields, and creates `Target` objects.
+## Generic Menu Boundary
 
-`Target` stores two generic fields:
+`ui/Menu` knows only:
 
 ```text
-fieldOne
-fieldTwo
+menu title
+string option labels
+numeric input
+valid option count
+selected position
+invalid-selection text
 ```
 
-For `websites.txt`, those fields mean website name and URL. For `messages.txt`, those fields mean sender and message text.
+It has no dependency on file loading, linked-list commands, sorting, or registries.
 
-`TargetList` stores `Target` objects with linked-list behavior. It owns its nodes, supports add, delete, navigation, search, vector snapshots for display, clearing, copy/move behavior, and destructor cleanup.
+The menu controllers own context:
 
-`TargetProgram` is the application spine/controller. It coordinates loading data, running menu commands, moving data between modules, and maintaining the current app state.
+- `MainMenu` coordinates startup.
+- `DataSourceMenu` discovers files and applies extension rules.
+- `TargetDataStructureMenu` gets commands from `CommandRegistry`.
+- `SortTypeMenu` gets algorithms from `SortRegistry`.
 
-`Menu` asks the user what to do. It owns input prompts, command display, numeric input validation, and data-source selection.
+## Registry Boundary
 
-`Display` prints results. It should format output only and should not own application decisions or linked-list behavior.
+`RegistryBase<Item>` provides shared item storage and append/read behavior.
 
-## Module Rules
-
-- `TargetList` should not depend on `FileLoader`, `Menu`, `Display`, or `TargetProgram`.
-- `TargetList` should store generic `Target` objects and should not assume a record is a website, message, task, or inventory item.
-- `FileLoader` may create `Target` objects and load them into `TargetList`.
-- `FileLoader` should accept a selected file path such as `data/websites.txt` or `data/messages.txt`.
-- `TargetProgram` coordinates the system and is the place where the main workflow comes together.
-- `Menu` asks the user what to do, including which data source to load.
-- `Display` prints results and status messages.
-- `Header.h` is for shared standard library includes, constants, and small common helpers only.
-- `Header.h` should not become a dumping ground for class dependencies.
-- `App.h` is for top-level application bundling only and should be used by `main.cpp` or the application entry point.
-
-## Key Types
-
-### Target
-
-`Target` is a generic two-field record. It supports reading and updating both fields, case-insensitive matching, and display-string formatting.
-
-### TargetList
-
-`TargetList` is the linked-list container. It manages node memory directly and keeps node pointers private.
-
-Required linked-list operations include:
-
-- add target
-- delete target
-- display list through a vector snapshot passed to `Display`
-- clear list
-- destructor cleanup
-- current-item navigation
-- search by either field
-
-### TargetStack
-
-`TargetStack` demonstrates LIFO behavior with generic targets. `push()` adds a `Target`; `pop()` removes and returns the most recently added `Target`.
-
-### TargetQueue
-
-`TargetQueue` demonstrates FIFO behavior with generic targets. `enqueue()` adds a `Target`; `dequeue()` removes and returns the oldest `Target`.
-
-### FileLoader
-
-`FileLoader` parses simple two-field data files. It does not decide what the fields mean; it only creates `Target` records from the selected file.
-
-### TargetProgram
-
-`TargetProgram` owns the active `TargetList`, tracks whether the user requested exit, asks `Menu` for user choices, calls `FileLoader`, and sends output requests to `Display`.
-
-## Current Layout
+`CommandRegistry` adds:
 
 ```text
-include/
-  App.h
-  Display.h
-  FileLoader.h
-  Header.h
-  Menu.h
-  ElectronicsSortSupport.h
-  Target.h
-  TargetList.h
-  TargetProgram.h
-  TargetQueue.h
-  TargetStack.h
-
-src/
-  algorithms/
-    InsertionSort.cpp
-    SelectionSort.cpp
-  ui/
-    Display.cpp
-    Menu.cpp
-  utils/
-    ElectronicsSortSupport.cpp
-    FileLoader.cpp
-  Target.cpp
-  TargetList.cpp
-  TargetProgram.cpp
-  TargetQueue.cpp
-  TargetStack.cpp
-
-data/
-  websites.txt
-  messages.txt
-
-tests/
-  ApplicationTests.cpp
+command field validation
+duplicate ID rejection
+single Exit enforcement
+ID ordering
+Exit-last ordering
+ID lookup
 ```
 
-## Function Notes
+`SortRegistry` adds:
 
-Function comments should stay clear enough for a junior C++ student to follow. Continue using these sections:
+```text
+algorithm validation
+duplicate label rejection
+registry-owned Exit item
+registration-order preservation
+Exit-last ordering
+```
 
-- Purpose
-- Design
-- Workflow
-- Data Handoff
+The registry headers own registration macros. `Menu.h` no longer contains plugin definitions or macros.
 
-The notes should explain how data moves between modules without making comments longer than the code they describe.
+## Command Modules
+
+Each file in `src/commands/` owns one target-menu action adapter and its registration:
+
+```text
+DisplayListCommand
+MoveForwardCommand
+MoveBackwardCommand
+AddTargetCommand
+DeleteTargetCommand
+FindTargetCommand
+SortListCommand
+ExitCommand
+```
+
+The adapters call public `TargetProgram` operations. They do not own list state or navigation loops.
+
+`SortListCommand` opens `SortTypeMenu`; it does not know which algorithms are registered.
+
+## Sorting Boundary
+
+Algorithm files contain:
+
+```text
+algorithm implementation
+small TargetProgram adapter
+SortRegistry registration
+```
+
+`sorting/SortSupport` owns:
+
+```text
+generic Target comparison
+timing repetition policy
+vector snapshots and copies
+sorted TargetList replacement
+timing output
+```
+
+`registry/SortRegistry` owns algorithm registration. `ui/SortTypeMenu` owns sorting navigation. Neither responsibility remains in `SortSupport`.
+
+## Core Boundary
+
+`core/TargetList` remains domain-neutral. It owns node memory, list mutation, navigation, search, and vector snapshots.
+
+`core/TargetProgram` coordinates business operations on the active list:
+
+```text
+load selected path
+display records
+move current record
+add record
+delete record
+find record
+track exit state
+```
+
+Application startup passes it into `MainMenu`; core code does not start UI navigation.
+
+## Dependency Direction
+
+```text
+core/Target
+    ^
+core/TargetList
+    ^
+core/TargetProgram <--- commands
+    ^       ^              ^
+    |       |              |
+   io      ui <-------- registries
+            ^
+            |
+         app/Main
+
+algorithms -> SortRegistry
+algorithms -> SortSupport -> TargetProgram
+SortTypeMenu -> SortRegistry
+```
+
+`Menu` sits below menu controllers as a reusable console helper. Registries do not render menus. Core containers do not depend on registries.
+
+## Include Paths
+
+Includes reflect ownership:
+
+```cpp
+#include "app/App.h"
+#include "core/TargetProgram.h"
+#include "io/FileLoader.h"
+#include "registry/CommandRegistry.h"
+#include "registry/SortRegistry.h"
+#include "sorting/SortSupport.h"
+#include "ui/Menu.h"
+#include "ui/SortTypeMenu.h"
+```
+
+Flat legacy include paths are no longer used.
+
+## Future Systems
+
+New systems can add their own menu controller and registry while reusing `Menu`:
+
+```text
+HashTableMenu + HashTableRegistry
+TreeMenu + TreeRegistry
+GraphMenu + GraphRegistry
+SearchMenu + SearchRegistry
+```
+
+This avoids coupling future navigation to the target-list or sorting command sets.

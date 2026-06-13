@@ -1,10 +1,10 @@
 /*
  * File: InsertionSort.cpp
- * Description: Registers and runs insertion sort on shared cleaned electronics data.
+ * Description: Implements and registers insertion sort.
  */
 
-#include "ElectronicsSortSupport.h"
-#include "Menu.h"
+#include "registry/SortRegistry.h"
+#include "sorting/SortSupport.h"
 
 
 // named container llb = linked list browser
@@ -14,7 +14,7 @@ namespace llb
     {
         /*
          * Purpose: Sort a Target array with insertion sort.
-         * Design: Receives data already loaded and cleaned by ElectronicsSortSupport.
+         * Design: Receives a prepared vector from SortSupport.
          * Workflow: Shift larger items right, then insert the saved item into place.
          * Data Handoff: Mutates the prepared vector supplied by the shared timing workflow.
          */
@@ -25,7 +25,7 @@ namespace llb
                 Target current = targets[i];
                 std::size_t j = i;
 
-                while (j > 0 && electronicsTargetLess(current, targets[j - 1]))
+                while (j > 0 && targetLess(current, targets[j - 1]))
                 {
                     targets[j] = targets[j - 1];
                     --j;
@@ -35,11 +35,17 @@ namespace llb
             }
         }
 
-        void electronicsInsertionSortCommand(TargetProgram& program)
+        /*
+         * Purpose: Connect insertion sort to the shared sort execution workflow.
+         * Design: Keeps registration glue local while SortSupport owns preparation and reporting.
+         * Workflow: Receive the active program and invoke runSortCommand() with insertionSort.
+         * Data Handoff: Passes the program and algorithm function into shared sorting support.
+         */
+        void insertionSortCommand(TargetProgram& program)
         {
-            runElectronicsSortCommand(program, "insertion sort", insertionSort);
+            runSortCommand(program, "Insertion Sort", insertionSort);
         }
     }
 }
 
-LLB_REGISTER_COMMAND(8, "Load electronics CSV and time insertion sort", llb::electronicsInsertionSortCommand)
+LLB_REGISTER_SORT("Insertion Sort", llb::insertionSortCommand)

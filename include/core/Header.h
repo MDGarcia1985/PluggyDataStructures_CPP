@@ -16,6 +16,7 @@
 #include <cctype>
 #include <cstddef>
 #include <fstream>
+#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <limits>

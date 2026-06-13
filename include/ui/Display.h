@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "Header.h"
-#include "Target.h"
-#include "TargetList.h"
+#include "core/Header.h"
+#include "core/Target.h"
+#include "core/TargetList.h"
 
 
 // named container llb = linked list browser

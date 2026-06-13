@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "Header.h"
-#include "TargetList.h"
+#include "core/Header.h"
+#include "core/TargetList.h"
 
 
 // named container llb = linked list browser
@@ -26,7 +26,7 @@ namespace llb
     public:
         explicit TargetProgram(std::string dataFilePath = DEFAULT_DATA_FILE);
 
-        void run();
+        void setDataFilePath(std::string dataFilePath);
         void loadInitialData();
         void requestExit();
         bool exitRequested() const;
@@ -43,5 +43,4 @@ namespace llb
         void findTargetFromUser();
     };
 
-    int runApp();
 }

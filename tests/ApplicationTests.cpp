@@ -1,9 +1,13 @@
-#include "Display.h"
-#include "FileLoader.h"
-#include "Menu.h"
-#include "TargetProgram.h"
-#include "TargetQueue.h"
-#include "TargetStack.h"
+#include "core/TargetProgram.h"
+#include "core/TargetQueue.h"
+#include "core/TargetStack.h"
+#include "io/FileLoader.h"
+#include "registry/CommandRegistry.h"
+#include "registry/SortRegistry.h"
+#include "sorting/SortSupport.h"
+#include "ui/DataSourceMenu.h"
+#include "ui/Display.h"
+#include "ui/Menu.h"
 
 #include <cstdio>
 #include <sstream>
@@ -185,6 +189,12 @@ namespace
         expect(queue.isEmpty(), "Queue reports empty after dequeues.");
     }
 
+    /*
+     * Purpose: Verify dynamic file classification plus generic TXT and CSV loading behavior.
+     * Design: Uses temporary datasets so parser cases can be checked without changing sample data.
+     * Workflow: Load text and CSV fixtures, inspect mapped Targets, test failures, and remove fixtures.
+     * Data Handoff: Sends temporary file content through FileLoader and compares resulting TargetLists.
+     */
     void testFileLoadingLayer()
     {
         const std::string path = "tests/tmp_targets_test.txt";
@@ -198,17 +208,19 @@ namespace
 
         llb::TargetList loaded;
         expect(llb::FileLoader::loadTargetsFromFile(path, loaded), "File loader loads valid rows.");
-        expectEqual(loaded.size(), 2, "File loader skips comments, malformed rows, and incomplete rows.");
+        expectEqual(loaded.size(), 4, "Text loader accepts pipe records and ordinary list items.");
         expectEqual(loaded.toVector()[0].fieldOne(), "Alpha Site", "File loader trims first fields.");
         expectEqual(loaded.toVector()[0].fieldTwo(), "https://alpha.test", "File loader trims second fields.");
-        expectEqual(loaded.toVector()[1].fieldOne(), "Beta Site", "File loader loads later valid rows.");
+        expectEqual(loaded.toVector()[1].fieldOne(), "missing separator", "Text loader keeps plain list lines.");
+        expectEqual(loaded.toVector()[2].fieldOne(), "No Url", "Text loader accepts an empty optional second field.");
+        expectEqual(loaded.toVector()[3].fieldOne(), "Beta Site", "File loader loads later valid rows.");
 
         llb::TargetList missing;
         expect(!llb::FileLoader::loadTargetsFromFile("tests/does_not_exist.txt", missing),
             "File loader reports missing file.");
         expect(missing.isEmpty(), "Missing file leaves list empty.");
 
-        writeFile(path, "# only comments\n\ninvalid\n");
+        writeFile(path, "# only comments\n\n");
 
         llb::TargetList empty;
         expect(!llb::FileLoader::loadTargetsFromFile(path, empty), "File loader reports no loaded targets.");
@@ -218,7 +230,25 @@ namespace
         expectEqual(empty.size(), 20, "Fallback loader adds built-in targets.");
         expectEqual(empty.toVector().front().fieldOne(), "Google", "Fallback loader starts with Google.");
 
+        const std::string csvPath = "tests/tmp_targets_test.csv";
+        writeFile(csvPath,
+            "name,category,notes\n"
+            "Alpha,First,\"contains, comma\"\n"
+            "Beta,Second,plain\n");
+
+        llb::TargetList csvTargets;
+        expect(llb::FileLoader::loadTargetsFromFile(csvPath, csvTargets), "CSV loader loads table rows.");
+        expectEqual(csvTargets.size(), 2, "CSV loader excludes the heading row.");
+        expectEqual(csvTargets.toVector()[0].fieldOne(), "Alpha", "CSV loader uses the first column as field one.");
+        expectEqual(csvTargets.toVector()[0].fieldTwo(), "category=First; notes=contains, comma",
+            "CSV loader labels remaining columns and handles quoted commas.");
+        expect(llb::FileLoader::fileType(csvPath) == llb::DataFileType::Csv, "CSV extension is supported.");
+        expect(llb::FileLoader::fileType("data/example.json") == llb::DataFileType::Unsupported,
+            "Unknown extensions are unsupported.");
+        expect(!llb::FileLoader::discoverDataFiles().empty(), "Data files are discovered dynamically.");
+
         std::remove(path.c_str());
+        std::remove(csvPath.c_str());
     }
 
     void testDisplayLayer()
@@ -254,6 +284,12 @@ namespace
         }
     }
 
+    /*
+     * Purpose: Verify generated command menus, validation, data selection, and sort registration.
+     * Design: Redirects console streams so interactive behavior can be tested deterministically.
+     * Workflow: Register a command, inspect ordering, exercise prompts, and inspect sort plugins.
+     * Data Handoff: Feeds simulated user input into Menu and observes registry and console results.
+     */
     void testMenuAndCommandLayer()
     {
         bool commandRan = false;
@@ -276,26 +312,44 @@ namespace
         expect(commandRan, "Command registry stores runnable action.");
 
         const std::vector<llb::CommandPlugin> commands = llb::CommandRegistry::instance().commands();
-        for (std::size_t i = 1; i < commands.size(); ++i)
+        expect(commands.back().isExit, "Exit is always the final generated main-menu command.");
+        for (std::size_t i = 1; i + 1 < commands.size(); ++i)
         {
             expect(commands[i - 1].id < commands[i].id, "Command registry returns commands sorted by ID.");
         }
 
         {
-            std::vector<llb::CommandPlugin> menuCommands;
-            menuCommands.push_back(llb::CommandPlugin{2, "Second", [](llb::TargetProgram&) {}});
-            menuCommands.push_back(llb::CommandPlugin{1, "First", [](llb::TargetProgram&) {}});
+            const std::vector<std::string> menuOptions = {"Second", "First"};
 
             ScopedCoutCapture output;
-            llb::Menu::display(menuCommands);
-            expect(contains(output.text(), "2) Second"), "Menu displays command labels.");
-            expect(contains(output.text(), "1) First"), "Menu displays all command labels.");
+            llb::Menu::display("Test Menu", menuOptions);
+            expect(contains(output.text(), "Test Menu"), "Menu displays the supplied title.");
+            expect(contains(output.text(), "1) Second"), "Menu numbers commands by generated position.");
+            expect(contains(output.text(), "2) First"), "Menu displays every command label.");
         }
 
         {
-            ScopedCinInput input("2\n");
+            const std::vector<std::string> files = llb::FileLoader::discoverDataFiles();
+            std::size_t messagesPosition = 0;
+            for (std::size_t index = 0; index < files.size(); ++index)
+            {
+                if (std::filesystem::path(files[index]).filename() == "messages.txt")
+                {
+                    messagesPosition = index + 1;
+                }
+            }
+
+            ScopedCinInput input(std::to_string(messagesPosition) + "\n");
             ScopedCoutCapture output;
-            expectEqual(llb::Menu::selectDataSource(), "data/messages.txt", "Menu selects messages file.");
+            expectEqual(llb::DataSourceMenu::selectDataSource(), "data/messages.txt",
+                "Data source menu selects messages file.");
+        }
+
+        {
+            ScopedCinInput input("0\n999\n2\n");
+            ScopedCoutCapture output;
+            expectEqual(llb::Menu::promptSelection(3), 1, "Menu selection retries until the range is valid.");
+            expect(contains(output.text(), "Invalid selection."), "Menu reports out-of-range selections.");
         }
 
         {
@@ -305,6 +359,13 @@ namespace
             expect(choice == 42, "Menu keeps prompting until numeric input is provided.");
             expect(contains(output.text(), "Invalid input."), "Menu reports invalid numeric input.");
         }
+
+        const std::vector<llb::SortCommand> sortCommands = llb::SortRegistry::instance().commands();
+        expect(sortCommands.size() >= 3,
+            "Sort modules register themselves with the Sort Type Menu.");
+        expect(sortCommands.back().isExit, "Sort registry keeps Exit as the final option.");
+        expect(llb::targetLess(llb::Target("alpha", "2"), llb::Target("Beta", "1")),
+            "Generic sort comparison orders targets without dataset assumptions.");
     }
 
     void testControllerLayer()

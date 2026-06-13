@@ -2,9 +2,8 @@
 
 ## Purpose
 
-This file records the design decisions made while extending `LinkedListBrowser` from a generic linked-list browser into a plugin-driven data-structure test bed. The notes stop at the current electronics component sorting milestone, where `ElectronicsSortSupport` was separated from the `InsertionSort` and `SelectionSort` modules.
+This file records the design decisions made while extending `LinkedListBrowser` from a generic linked-list browser into a plugin-driven data-structure test bed. The notes stop at the current milestone achieved and next steps planned.
 
-The next planned step is to make the same shape generic so any queued dataset can be sorted by any registered sorting algorithm.
 
 ## Current Architectural Direction
 
@@ -664,3 +663,513 @@ shared support module
 ```
 
 The next design move is to replace the electronics-specific support contract with a generic queued dataset and registered sort-algorithm system.
+
+## Completed Milestone: Generic Dataset And Sort Menus
+
+Date completed:
+
+```text
+2026-06-13
+```
+
+The portability refactor described above has now been implemented. The earlier electronics-specific design remains documented because it explains how the project reached the current architecture.
+
+The implementation followed the later application specification rather than every detail of the earlier queued-dataset proposal. In particular, the application now sorts the dataset currently selected by the user instead of introducing a separate `DatasetQueue`.
+
+Reason:
+
+```text
+The active TargetList already represents the selected work item.
+The requested workflow opens a Sort Type Menu for that active list.
+A second queue would add state and ownership complexity without serving the current UI.
+```
+
+### Completed: Rename the support layer
+
+The former files:
+
+```text
+ElectronicsSortSupport.h
+ElectronicsSortSupport.cpp
+```
+
+were renamed and redesigned as:
+
+```text
+SortSupport.h
+SortSupport.cpp
+```
+
+All includes, symbols, comments, tests, and root documentation were updated. Shared sorting support no longer assumes that records describe electronics.
+
+### Completed: Generic dataset discovery
+
+`FileLoader::discoverDataFiles()` now scans `data/` for regular files and returns them in filename order.
+
+The startup menu is generated from the discovered files instead of hardcoding:
+
+```text
+data/websites.txt
+data/messages.txt
+```
+
+Unsupported files remain visible and are labeled as unsupported. Selecting one reports the error and redisplays the data file menu.
+
+### Completed: Extension-based loading
+
+The selected extension determines the loader:
+
+```text
+.txt -> plain text/list loader
+.csv -> structured table loader
+other -> unsupported
+```
+
+Extension matching is case-insensitive.
+
+TXT decisions:
+
+```text
+pipe-delimited rows preserve the existing fieldOne|fieldTwo format
+ordinary non-comment lines are accepted as one-field list items
+blank lines and # comments are skipped
+```
+
+CSV decisions:
+
+```text
+the first non-empty row supplies column headings
+the first data column becomes Target::fieldOne
+remaining non-empty columns become labeled Target::fieldTwo attributes
+quoted commas and doubled quote escapes are supported
+```
+
+This replaces the earlier electronics-column mapping with a table mapping that can represent any standard CSV dataset.
+
+### Completed: Generic sorting contract
+
+The active contract is:
+
+```cpp
+using SortFunction = void (*)(std::vector<Target>&);
+
+bool targetLess(const Target& left, const Target& right);
+
+void runSortCommand(
+    TargetProgram& program,
+    const std::string& algorithmName,
+    SortFunction sortFunction);
+```
+
+The comparator is generic and case-insensitive:
+
+```text
+compare fieldOne
+then compare fieldTwo
+then use the original display text as a stable tie-breaker
+```
+
+The earlier proposal considered passing a comparator into each algorithm. The implemented algorithms call the shared `targetLess()` function instead.
+
+Reason:
+
+```text
+The current application defines one generic ordering policy for Target records.
+Keeping that policy in SortSupport still prevents algorithm duplication.
+The contract can be expanded later if datasets require selectable custom ordering.
+```
+
+### Completed: Sort registry
+
+`SortRegistry` is now independent from the main `CommandRegistry`.
+
+Each sorting module registers a `SortCommand` containing:
+
+```text
+display label
+action receiving TargetProgram&
+```
+
+The current modules register:
+
+```text
+Selection Sort
+Insertion Sort
+```
+
+Future algorithms can register with:
+
+```cpp
+LLB_REGISTER_SORT("Algorithm Name", llb::algorithmCommand)
+```
+
+No Sort Type Menu rewrite is required.
+
+### Completed: Thin algorithm modules
+
+`InsertionSort.cpp` and `SelectionSort.cpp` now contain only:
+
+```text
+algorithm logic
+small command adapter
+sort registration
+```
+
+They do not:
+
+```text
+discover files
+load TXT or CSV data
+parse rows
+choose timing repetitions
+replace linked-list nodes directly
+render menus
+print the timing report
+```
+
+Those shared responsibilities are owned by `FileLoader`, `Menu`, and `SortSupport`.
+
+### Completed: Sort the active dataset
+
+The main menu now contains:
+
+```text
+7) Sort list
+```
+
+Selecting it opens the generated Sort Type Menu. The chosen algorithm receives a vector snapshot of the active `TargetList`.
+
+The sorting workflow is:
+
+```text
+selected data file
+-> FileLoader
+-> active TargetList
+-> Sort list command
+-> Sort Type Menu
+-> registered sort command
+-> TargetList::toVector()
+-> timed vector copies
+-> sorted TargetList replacement
+```
+
+This preserves the linked list as the application’s central data structure while using arrays for algorithm timing.
+
+### Completed: Timing boundaries
+
+The earlier timing rules were retained:
+
+```text
+file discovery is not timed
+file I/O is not timed
+TXT or CSV parsing is not timed
+linked-list loading is not timed
+vector cloning is not timed
+console output is not timed
+only calls to the sort function are timed
+```
+
+Small datasets are sorted repeatedly. The application reports total elapsed seconds and average seconds per sort.
+
+### Completed: Menu validation and Exit ordering
+
+All interactive menus validate that the entered number matches a displayed option.
+
+Invalid entries report:
+
+```text
+Invalid selection. Please choose one of the listed options.
+```
+
+The relevant menu is then redisplayed.
+
+The main command registry now marks the Exit command explicitly. Visible menu numbers are generated from command positions rather than registration IDs.
+
+Ordering rule:
+
+```text
+regular registered commands appear first
+Exit is appended last
+```
+
+The Sort Type Menu follows the same Exit-last rule.
+
+### Completed: Function documentation
+
+Every newly created or modified function uses the required header:
+
+```cpp
+/*
+ * Purpose:
+ * Design:
+ * Workflow:
+ * Data Handoff:
+ */
+```
+
+### Validation completed
+
+The completed refactor was checked with:
+
+```text
+C++17 application build with -Wall -Wextra -pedantic
+C++17 test build with -Wall -Wextra -pedantic
+111 passing automated tests
+scripted interactive TXT and CSV selection
+invalid dataset, main-menu, and sort-menu entries
+registered sorting
+Exit-last behavior
+```
+
+### Current extension points
+
+Add a dataset:
+
+```text
+Place a standard .txt or .csv file in data/.
+```
+
+Add a sorting algorithm:
+
+```text
+Create an algorithm module.
+Implement the vector sort.
+Add a small command adapter calling runSortCommand().
+Register it with LLB_REGISTER_SORT.
+```
+
+The historical queued-dataset design remains a possible future direction if the application later needs to hold and schedule multiple datasets simultaneously. It is not required by the current single-active-dataset workflow.
+
+## Completed Milestone: Menu And Registry Architecture Refactor
+
+Date completed:
+
+```text
+2026-06-13
+```
+
+The menu and registration architecture was reorganized after the generic dataset and sorting milestone. This section records the completed changes without replacing the earlier decisions that led to them.
+
+### Completed: Ownership-based directories
+
+Flat headers and mixed source folders were moved into:
+
+```text
+include/app
+include/core
+include/io
+include/registry
+include/sorting
+include/ui
+
+src/app
+src/commands
+src/algorithms
+src/core
+src/io
+src/registry
+src/sorting
+src/ui
+```
+
+Include paths now state module ownership explicitly, such as:
+
+```cpp
+#include "core/TargetProgram.h"
+#include "registry/CommandRegistry.h"
+#include "ui/SortTypeMenu.h"
+```
+
+### Completed: Generic Menu
+
+`Menu` no longer contains:
+
+```text
+CommandPlugin
+CommandRegistry
+registration macros
+dataset discovery
+file type decisions
+target menu headings
+sort menu behavior
+```
+
+Its active responsibilities are:
+
+```text
+display a title and string labels
+prompt for numeric input
+validate option ranges
+return a zero-based selection
+print the shared invalid-selection message
+redisplay complete menus after invalid choices
+```
+
+Reason:
+
+```text
+A reusable menu should not know what an option means or where options come from.
+```
+
+### Completed: Dedicated menu controllers
+
+The application flow is now separated into:
+
+```text
+MainMenu
+DataSourceMenu
+TargetDataStructureMenu
+SortTypeMenu
+```
+
+`MainMenu` starts the application flow.
+
+`DataSourceMenu` owns file discovery labels, unsupported-file reporting, and the selected path.
+
+`TargetDataStructureMenu` obtains target/list commands from `CommandRegistry` and executes the selected action.
+
+`SortTypeMenu` obtains algorithms and Exit from `SortRegistry` and executes the selected action.
+
+### Completed: Shared registry base
+
+`RegistryBase<Item>` was added to centralize owned registration storage.
+
+Derived registries apply their own validation and ordering rules before or after using the shared storage.
+
+This was intentionally kept small. It avoids forcing command and sort entries into an artificial identical schema while still removing duplicated container ownership behavior.
+
+### Completed: CommandRegistry extraction
+
+`CommandRegistry` moved from `Menu.h/cpp` into:
+
+```text
+include/registry/CommandRegistry.h
+src/registry/CommandRegistry.cpp
+```
+
+It continues to:
+
+```text
+reject invalid registrations
+reject duplicate IDs
+allow one Exit command
+sort regular commands by ID
+return Exit last
+find commands by stable ID
+```
+
+The command registration macros moved with the registry contract.
+
+### Completed: SortRegistry extraction
+
+`SortRegistry` moved out of `SortSupport` into:
+
+```text
+include/registry/SortRegistry.h
+src/registry/SortRegistry.cpp
+```
+
+The registry now owns the Sort Type Menu's Exit item. Algorithms register only executable sorting entries. `SortTypeMenu` therefore receives every displayed item from the registry instead of appending an Exit label itself.
+
+### Completed: Individual command modules
+
+Target/list command adapters moved out of `TargetProgram.cpp` into:
+
+```text
+DisplayListCommand.cpp
+MoveForwardCommand.cpp
+MoveBackwardCommand.cpp
+AddTargetCommand.cpp
+DeleteTargetCommand.cpp
+FindTargetCommand.cpp
+SortListCommand.cpp
+ExitCommand.cpp
+```
+
+`SortListCommand.cpp` was added after confirming that Sort list should follow the same one-command-per-file rule as the other target commands.
+
+Each command module contains:
+
+```text
+required includes
+one small action adapter
+one registration declaration
+```
+
+### Completed: TargetProgram simplification
+
+`TargetProgram.cpp` no longer:
+
+```text
+defines command adapters
+registers commands
+discovers datasets
+renders the target command menu
+dispatches command registry entries
+implements runApp()
+```
+
+It retains active list state and business operations. `App.cpp` now passes the program into `MainMenu`, so core code does not start UI navigation.
+
+Application startup moved to:
+
+```text
+include/app/App.h
+src/app/App.cpp
+```
+
+### Completed: SortSupport simplification
+
+`SortSupport` no longer owns:
+
+```text
+SortRegistry implementation
+Sort Type Menu rendering
+sort menu validation
+Exit menu behavior
+```
+
+It retains:
+
+```text
+generic Target ordering
+timing policy
+sort execution
+sorted-list replacement
+timing output
+```
+
+This keeps sorting support separate from both algorithm registration and UI navigation.
+
+### Completed: Build and validation updates
+
+The VS Code `cl.exe` task now lists all source files in the reorganized folders.
+
+Validation completed:
+
+```text
+C++17 application build with -Wall -Wextra -pedantic
+C++17 test build with -Wall -Wextra -pedantic
+113 passing automated tests
+dynamic CSV dataset selection
+invalid dataset menu redisplay
+invalid target menu redisplay
+invalid sort menu redisplay
+CommandRegistry Exit-last behavior
+SortRegistry Exit-last behavior
+Sort Type Menu return to the target menu
+application Exit behavior
+```
+
+### Current extension direction
+
+Future data structures can reuse `Menu` while defining independent controllers and registries:
+
+```text
+HashTableMenu and HashTableRegistry
+TreeMenu and TreeRegistry
+GraphMenu and GraphRegistry
+SearchMenu and SearchRegistry
+```
+
+This milestone establishes the folder and dependency pattern those systems can follow.
