@@ -1,5 +1,28 @@
 # LinkedListBrowser
 
+## Run Guide
+
+From the project root, build and run the app with a C++17 compiler:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser
+./LinkedListBrowser
+```
+
+To build and run the tests:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o ApplicationTests
+./ApplicationTests
+```
+
+On Windows with MinGW, you can use `.exe` output names:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser.exe
+.\LinkedListBrowser.exe
+```
+
 LinkedListBrowser began as a website linked-list assignment. It originally loaded website names and URLs into a linked list and let the user browse, add, delete, search, and display those entries.
 
 The project is now being refactored into a generic data-structure framework. The goal is to show that the linked list does not care what the record means. A record can represent a website, a text message, a task, an inventory item, or another simple two-field data type.
@@ -44,6 +67,7 @@ include/
   FileLoader.h
   Header.h
   Menu.h
+  ElectronicsSortSupport.h
   Target.h
   TargetList.h
   TargetProgram.h
@@ -51,9 +75,15 @@ include/
   TargetStack.h
 
 src/
-  Display.cpp
-  FileLoader.cpp
-  Menu.cpp
+  algorithms/
+    InsertionSort.cpp
+    SelectionSort.cpp
+  ui/
+    Display.cpp
+    Menu.cpp
+  utils/
+    ElectronicsSortSupport.cpp
+    FileLoader.cpp
   Target.cpp
   TargetList.cpp
   TargetProgram.cpp
@@ -94,14 +124,14 @@ Blank lines, comment lines beginning with `#`, malformed rows, and rows with an 
 Example test build:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/Target.cpp src/TargetList.cpp src/TargetStack.cpp src/TargetQueue.cpp src/Menu.cpp src/FileLoader.cpp src/Display.cpp src/TargetProgram.cpp -o ApplicationTests
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o ApplicationTests
 ./ApplicationTests
 ```
 
 Example app build:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp -o LinkedListBrowser
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp src/ui/*.cpp src/utils/*.cpp src/algorithms/*.cpp -o LinkedListBrowser
 ./LinkedListBrowser
 ```
 

@@ -95,6 +95,7 @@ include/
   FileLoader.h
   Header.h
   Menu.h
+  ElectronicsSortSupport.h
   Target.h
   TargetList.h
   TargetProgram.h
@@ -102,9 +103,15 @@ include/
   TargetStack.h
 
 src/
-  Display.cpp
-  FileLoader.cpp
-  Menu.cpp
+  algorithms/
+    InsertionSort.cpp
+    SelectionSort.cpp
+  ui/
+    Display.cpp
+    Menu.cpp
+  utils/
+    ElectronicsSortSupport.cpp
+    FileLoader.cpp
   Target.cpp
   TargetList.cpp
   TargetProgram.cpp
