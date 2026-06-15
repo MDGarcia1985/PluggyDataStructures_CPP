@@ -1,0 +1,10 @@
+# Edge list for social.csv
+# Format: fromKey|toKey|weight   (weight optional, undirected by default)
+# Add a line containing only "#directed" to make subsequent edges directed.
+Alice|Bob|1
+Alice|Carol|1
+Bob|Dave|1
+Carol|Dave|1
+Dave|Eve|1
+Eve|Frank|1
+Frank|Alice|1

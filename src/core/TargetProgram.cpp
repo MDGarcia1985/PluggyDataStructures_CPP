@@ -46,12 +46,7 @@ namespace llb
      */
     void TargetProgram::loadInitialData()
     {
-        targets_.clear();
-
-        if (!FileLoader::loadTargetsFromFile(dataFilePath_, targets_))
-        {
-            FileLoader::loadFallbackTargets(targets_);
-        }
+        FileLoader::loadTargetsOrFallback(dataFilePath_, targets_);
     }
 
     /*

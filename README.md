@@ -11,8 +11,17 @@ CMake compiles every source file (including self-registering operation modules) 
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/LinkedListBrowser        # Windows: .\build\LinkedListBrowser.exe
 ctest --test-dir build --output-on-failure
+./build/LinkedListBrowser
+```
+
+With the default Visual Studio generator on Windows, specify the configuration and use its configuration subdirectory:
+
+```powershell
+cmake -S . -B build
+cmake --build build --config Debug
+ctest --test-dir build -C Debug --output-on-failure
+.\build\Debug\LinkedListBrowser.exe
 ```
 
 Operation, command, and sort modules register themselves through global initializers. The build compiles them into an OBJECT library that is linked directly into both executables, so the linker never drops those object files.
@@ -88,6 +97,8 @@ other -> displayed as unsupported
 
 TXT files accept either `fieldOne|fieldTwo` records or ordinary one-item lines. CSV files use the first row as headings, map the first column to `Target::fieldOne()`, and store labeled remaining values in `fieldTwo()`.
 
+All structure sessions use the same loading policy. If the selected TXT or CSV file cannot be opened or contains no usable records, `FileLoader::loadTargetsOrFallback()` supplies the built-in 20-record dataset before the selected structure is constructed.
+
 ### Graph edge files
 
 The graph reuses any node dataset and looks for a companion edge file named `<dataset-base>.edges`. For example, selecting `data/social.csv` loads edges from `data/social.edges`.
@@ -100,6 +111,8 @@ fromKey,toKey,weight     # comma-delimited rows are also accepted
 ```
 
 Edges reference nodes by their first field (`Target::fieldOne()`). If no edge file exists, the graph still loads the nodes and edges can be added from the menu.
+
+Edge loading reports distinct `NotFound`, `Loaded`, `Empty`, and `Invalid` outcomes. Invalid rows are counted, valid rows can still load from a partially malformed file, and edge records whose node keys do not exist are reported separately.
 
 ## Menu Flow
 
@@ -135,6 +148,8 @@ XSession                    owns one structure instance plus its load context
 
 Concrete registries (`CommandRegistry`, `SortRegistry`, and the `StructureRegistry<Session>` aliases `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) layer their policy on the shared base.
 
+Command and structure operations require positive, unique IDs. ID `0` is reserved for registry-owned Exit/Back entries. Sort entries are identified by unique labels because their registration-order IDs remain `0`.
+
 ## Plugin Registration
 
 Linked-list commands are independent source files in `src/commands/`, each registering with `CommandRegistry`:
@@ -159,7 +174,7 @@ LLB_REGISTER_OPERATION(llb::TreeRegistry::instance(),
     TreeOp{9, "New tree operation", [](llb::TreeSession& session) { /* ... */ }})
 ```
 
-Each `StructureRegistry` seeds its own Exit/Back item and returns it last, so adding an operation never requires editing a menu.
+Each `StructureRegistry` seeds its own ID `0` Exit/Back item, rejects duplicate operation IDs and labels, and returns Exit/Back last. Adding an operation never requires editing a menu.
 
 ## Project Layout
 

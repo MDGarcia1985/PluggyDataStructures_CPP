@@ -1,0 +1,26 @@
+/*
+ * File: StackOperations.cpp
+ * Description: Registers the interactive operations available in the stack menu.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "registry/StructureRegistries.h"
+#include "session/StackSession.h"
+
+
+using StackOp = llb::Operation<llb::StackSession>;
+
+LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
+    StackOp{1, "Display stack (top first)", [](llb::StackSession& session) { session.display(); }})
+
+LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
+    StackOp{2, "Push a target", [](llb::StackSession& session) { session.pushFromUser(); }})
+
+LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
+    StackOp{3, "Pop the top target", [](llb::StackSession& session) { session.popAndShow(); }})
+
+LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
+    StackOp{4, "Peek at the top target", [](llb::StackSession& session) { session.peekAndShow(); }})

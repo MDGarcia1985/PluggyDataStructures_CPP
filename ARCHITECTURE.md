@@ -9,16 +9,21 @@ main.cpp
 -> app/App.cpp
 -> MainMenu
 -> DataSourceMenu
--> FileLoader
--> TargetList
--> TargetDataStructureMenu
--> CommandRegistry action
--> optional SortTypeMenu
--> SortRegistry action
--> SortSupport
+-> FileLoader::loadTargetsOrFallback
+-> StructureMenu
+   -> Linked List: TargetProgram -> CommandRegistry -> MenuController
+      -> optional SortTypeMenu -> SortRegistry action -> SortSupport
+   -> Stack: StackSession -> StackRegistry -> MenuController
+   -> Queue: QueueSession -> QueueRegistry -> MenuController
+   -> Tree: TreeSession -> TreeRegistry -> MenuController
+   -> Graph: GraphSession -> GraphRegistry -> MenuController
+      -> optional companion edge file through FileLoader
+   -> Hash Table: HashTableSession -> HashTableRegistry -> MenuController
 ```
 
-`TargetProgram` owns the active `TargetList`, selected data path, and exit state. It implements list operations but does not register commands or render application menus.
+`MainMenu` loads the selected dataset once to report its size. `StructureMenu` creates a fresh structure session for every selection and applies the same selected-file-or-fallback policy before construction.
+
+`TargetProgram` owns the linked-list session's active `TargetList`, selected data path, and exit state. It implements list operations but does not register commands or render application menus.
 
 ## Generic Menu Boundary
 
@@ -39,7 +44,9 @@ The menu controllers own context:
 
 - `MainMenu` coordinates startup.
 - `DataSourceMenu` discovers files and applies extension rules.
-- `TargetDataStructureMenu` gets commands from `CommandRegistry`.
+- `StructureMenu` selects a structure and constructs its session.
+- `MenuController<RegistryT, SessionT>` renders and dispatches registered operations.
+- `TargetDataStructureMenu` remains a thin linked-list wrapper over `MenuController`.
 - `SortTypeMenu` gets algorithms from `SortRegistry`.
 
 ## Registry Boundary
@@ -65,6 +72,18 @@ duplicate label rejection
 registry-owned Exit item
 registration-order preservation
 Exit-last ordering
+```
+
+`StructureRegistry<SessionT>` adds:
+
+```text
+positive operation ID validation
+duplicate ID rejection
+duplicate label rejection
+registry-owned ID 0 Back item
+ID ordering
+Back-last ordering
+unambiguous ID lookup
 ```
 
 The registry headers own registration macros. `Menu.h` no longer contains plugin definitions or macros.
@@ -126,6 +145,15 @@ find record
 track exit state
 ```
 
+`io/FileLoader` owns the common loading policy:
+
+```text
+try the selected TXT or CSV dataset
+clear partial or previous records
+load the built-in 20-record fallback when loading fails
+hand the same resulting Targets to every structure path
+```
+
 Application startup passes it into `MainMenu`; core code does not start UI navigation.
 
 ## Dependency Direction
@@ -148,7 +176,7 @@ algorithms -> SortSupport -> TargetProgram
 SortTypeMenu -> SortRegistry
 ```
 
-`Menu` sits below menu controllers as a reusable console helper. Registries do not render menus. Core containers do not depend on registries.
+`Menu` sits below menu controllers as a reusable console helper. Registries do not render menus. Core containers do not depend on registries. `TargetStack` and `TargetQueue` retain legacy `display()` convenience methods that delegate to `ui/Display`; interactive structure behavior otherwise lives in sessions.
 
 ## Include Paths
 
@@ -179,7 +207,7 @@ MenuController<RegistryT, SessionT>   converts operations to labels and runs the
 XSession                             owns one structure instance plus its load context
 ```
 
-`CommandRegistry` and `SortRegistry` derive from `OperationRegistry<TargetProgram>`; `CommandPlugin` and `SortCommand` are aliases of `Operation<TargetProgram>`. `StructureRegistry<SessionT>` is a single template (aliased as `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) that seeds its own Exit item.
+`CommandRegistry` and `SortRegistry` derive from `OperationRegistry<TargetProgram>`; `CommandPlugin` and `SortCommand` are aliases of `Operation<TargetProgram>`. `StructureRegistry<SessionT>` is a single template (aliased as `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) that seeds its own ID `0` Back item. Registered structure operations require positive IDs, unique IDs, and unique labels.
 
 `StructureMenu` sits above the per-structure controllers:
 
@@ -198,7 +226,19 @@ Graph         TargetGraph (integer-id arena) + VisitedSet + GraphSession + Graph
 Hash Table    TargetHashTable (separate chaining) + HashTableSession + HashTableRegistry + HashTableOperations
 ```
 
-Core containers remain domain-neutral; sessions own interactive I/O; operation modules in `src/operations/` self-register. The graph reads an optional `<dataset>.edges` companion file via `FileLoader`.
+Sessions own interactive I/O and operation modules in `src/operations/` self-register. Every session receives either the selected dataset or the shared fallback dataset. The graph reads an optional `<dataset>.edges` companion file via `FileLoader`.
+
+## Graph Edge Diagnostics
+
+`FileLoader::loadEdges()` returns an `EdgeLoadResult`:
+
+```text
+status: NotFound | Loaded | Empty | Invalid
+edges: parsed EdgeRecord values
+skippedRowCount: malformed data rows ignored by the parser
+```
+
+Parsing and graph resolution remain separate. `FileLoader` reports file and row state; `GraphSession` counts parsed edges rejected because a source or destination key is absent from the selected node dataset. `StructureMenu` combines both results into accurate user-facing diagnostics while keeping an edgeless graph usable.
 
 ## Build Note: Self-Registration
 

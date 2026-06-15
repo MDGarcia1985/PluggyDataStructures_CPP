@@ -32,16 +32,32 @@ namespace llb
         bool directed = false;
     };
 
+    enum class EdgeLoadStatus
+    {
+        NotFound,
+        Loaded,
+        Empty,
+        Invalid
+    };
+
+    struct EdgeLoadResult
+    {
+        EdgeLoadStatus status = EdgeLoadStatus::NotFound;
+        std::vector<EdgeRecord> edges;
+        std::size_t skippedRowCount = 0;
+    };
+
     class FileLoader
     {
     public:
         static std::vector<std::string> discoverDataFiles();
         static DataFileType fileType(const std::string& filePath);
         static bool loadTargetsFromFile(const std::string& filePath, TargetList& targets);
+        static bool loadTargetsOrFallback(const std::string& filePath, TargetList& targets);
         static void loadFallbackTargets(TargetList& targets);
 
         static std::string discoverEdgeFile(const std::string& nodeFilePath);
-        static std::vector<EdgeRecord> loadEdges(const std::string& edgeFilePath);
+        static EdgeLoadResult loadEdges(const std::string& edgeFilePath);
 
     private:
         static std::string trim(const std::string& text);

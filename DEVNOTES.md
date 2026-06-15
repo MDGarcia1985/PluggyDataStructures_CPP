@@ -4,6 +4,8 @@
 
 This file records the design decisions made while extending `LinkedListBrowser` from a generic linked-list browser into a plugin-driven data-structure test bed. The notes stop at the current milestone achieved and next steps planned.
 
+The file is maintained chronologically. Earlier references to "current" behavior describe the state at that historical milestone; later completed-milestone sections supersede them without deleting the decisions that led there.
+
 
 ## Current Architectural Direction
 
@@ -1238,3 +1240,175 @@ C++17 application build with -Wall -Wextra -pedantic (clean)
 C++17 test build with -Wall -Wextra -pedantic (clean)
 23 test cases, 208 assertions, all passing
 ```
+
+## Completed Milestone: Shared Fallback Loading And Unambiguous Structure IDs
+
+Date completed:
+
+```text
+2026-06-15
+```
+
+This milestone follows the generic structures framework and addresses review findings without rewriting the historical decisions above.
+
+### Completed: One fallback policy for every structure
+
+Previously, `TargetProgram::loadInitialData()` loaded the built-in fallback dataset when the selected file failed, while `StructureMenu` loaded stack, queue, tree, graph, and hash-table inputs directly and silently constructed empty sessions on the same failure.
+
+`FileLoader::loadTargetsOrFallback()` now owns the shared policy:
+
+```text
+clear caller-owned records
+try the selected TXT or CSV file
+return true when selected data loads
+otherwise load the built-in 20-record dataset
+return false to report that fallback was used
+```
+
+Both `TargetProgram` and `StructureMenu` use this entry point. Every structure therefore receives the same data for a selected path, including missing and empty-file cases.
+
+An integration test drives `StructureMenu` with scripted input, selects the stack for a missing dataset, displays its contents, and verifies records from both ends of the fallback collection.
+
+### Completed: Positive and unique structure operation IDs
+
+`StructureRegistry<SessionT>` now enables the same positive-ID and duplicate-ID checks used by command registration, while retaining unique-label validation.
+
+The active invariant is:
+
+```text
+ID 0 is reserved for the registry-owned Back item
+registered structure operation IDs must be positive
+registered structure operation IDs must be unique within that registry
+registered structure operation labels must be unique within that registry
+findById(id) identifies at most one operation
+```
+
+Regression tests reject a duplicate tree-operation ID and a negative ID, then verify only one operation owns the tested ID.
+
+### Documentation update
+
+`README.md` and `ARCHITECTURE.md` now describe:
+
+```text
+StructureMenu as the live post-dataset routing layer
+the per-structure session/registry/controller branches
+shared selected-file-or-fallback loading
+the ID 0 Back reservation and positive unique operation IDs
+the current graph edge diagnostic limitation
+```
+
+The earlier sections of this file remain unchanged as historical records. This dated section supersedes their obsolete current-state descriptions.
+
+### Reviewed: graph edge-file diagnostics
+
+No edge-loading behavior changed in this milestone. The review confirmed that `StructureMenu` currently uses an empty edge vector to decide that no companion file was found. That wording is inaccurate when a companion file exists but is empty or contains no valid rows.
+
+Recommended next design:
+
+```text
+EdgeLoadResult
+  status: NotFound | Loaded | Empty | Invalid
+  edges: vector<EdgeRecord>
+  skippedRowCount
+```
+
+`GraphSession` can additionally report how many parsed edges were rejected because their endpoint keys do not exist in the node dataset.
+
+Recommended messages:
+
+```text
+NotFound -> No companion edge file found; graph loaded with nodes only.
+Empty    -> Companion edge file contains no edge records.
+Invalid  -> Companion edge file contains no valid edge records; report skipped rows.
+Loaded   -> Load edges and optionally report unresolved endpoint references.
+```
+
+This result object is preferred over inferring file state from `edges.empty()` because an empty graph is valid and should remain usable.
+
+### Validation completed
+
+```text
+C++17 application build with -Wall -Wextra -pedantic (clean)
+C++17 test build with -Wall -Wextra -pedantic (clean)
+24 test cases, 213 assertions, all passing
+```
+
+## Completed Milestone: Structured Graph Edge Diagnostics
+
+Date completed:
+
+```text
+2026-06-15
+```
+
+This milestone implements the graph edge diagnostic design recommended in the immediately preceding milestone.
+
+### Completed: EdgeLoadResult
+
+`FileLoader::loadEdges()` now returns:
+
+```text
+EdgeLoadResult
+  status: NotFound | Loaded | Empty | Invalid
+  edges: vector<EdgeRecord>
+  skippedRowCount
+```
+
+Status meanings:
+
+```text
+NotFound -> the companion path cannot be opened
+Loaded   -> at least one valid edge record was parsed
+Empty    -> the file contains no data rows after comments, directives, and headers
+Invalid  -> data rows exist, but none are valid edge records
+```
+
+A partially malformed file remains `Loaded`; valid records are retained and invalid rows contribute to `skippedRowCount`.
+
+### Completed: Endpoint-resolution diagnostics
+
+`GraphSession` now counts parsed edge records that cannot be added because either endpoint key is absent from the loaded graph nodes.
+
+The responsibilities remain separate:
+
+```text
+FileLoader   -> file state, syntax parsing, skipped malformed rows
+GraphSession -> node-key resolution and unresolved endpoint count
+StructureMenu -> user-facing diagnostic messages
+```
+
+This avoids coupling generic file parsing to a particular graph instance.
+
+### Completed: Accurate graph messages
+
+`StructureMenu` now distinguishes:
+
+```text
+missing companion file
+empty companion file
+file containing only invalid rows
+partially valid file with skipped rows
+parsed edges whose endpoint keys are unresolved
+```
+
+All outcomes still produce a usable graph session. Missing, empty, or invalid edge files load the selected nodes without edges.
+
+### Validation completed
+
+```text
+C++17 application build with -Wall -Wextra -pedantic (clean)
+C++17 test build with -Wall -Wextra -pedantic (clean)
+25 test cases, 222 assertions, all passing
+```
+
+### CMake validation
+
+The CMake workflow was subsequently verified with CMake 4.4.0-rc1 and the Visual Studio 18 2026 generator:
+
+```text
+configure succeeded
+Debug application and test builds succeeded
+CTest passed unit_tests
+```
+
+The Windows documentation now includes `--config Debug`, `ctest -C Debug`, and the generated `build/Debug/LinkedListBrowser.exe` path required by Visual Studio's multi-configuration layout.

@@ -97,6 +97,25 @@ namespace llb
     }
 
     /*
+     * Purpose: Load a selected dataset while guaranteeing a usable Target collection.
+     * Design: Centralizes fallback policy so every data structure receives the same source data.
+     * Workflow: Clear existing records, try the selected file, and load built-in records on failure.
+     * Data Handoff: Fills the caller-owned TargetList and reports whether the selected file loaded.
+     */
+    bool FileLoader::loadTargetsOrFallback(const std::string& filePath, TargetList& targets)
+    {
+        targets.clear();
+
+        if (loadTargetsFromFile(filePath, targets))
+        {
+            return true;
+        }
+
+        loadFallbackTargets(targets);
+        return false;
+    }
+
+    /*
      * Purpose: Provide starter target data when a directly requested file cannot be loaded.
      * Design: Keeps fallback values generic for non-interactive construction and compatibility tests.
      * Workflow: Append each built-in Target to the provided list.
@@ -147,21 +166,22 @@ namespace llb
     }
 
     /*
-     * Purpose: Load weighted edges that reference nodes by their first-field key.
-     * Design: Accepts pipe- or comma-delimited rows, an optional header, and a directed directive.
-     * Workflow: Read cleaned lines, honor #directed, split fields, and build each edge record.
-     * Data Handoff: Converts an edge file into EdgeRecord values for the graph session.
+     * Purpose: Load weighted edges and classify the outcome for accurate graph diagnostics.
+     * Design: Distinguishes missing, loaded, empty, and invalid files while counting skipped rows.
+     * Workflow: Read cleaned lines, honor #directed, parse valid records, and classify the result.
+     * Data Handoff: Returns parsed EdgeRecords plus status and skipped-row metadata.
      */
-    std::vector<EdgeRecord> FileLoader::loadEdges(const std::string& edgeFilePath)
+    EdgeLoadResult FileLoader::loadEdges(const std::string& edgeFilePath)
     {
-        std::vector<EdgeRecord> edges;
+        EdgeLoadResult result;
         std::ifstream inputFile(edgeFilePath);
         if (!inputFile.is_open())
         {
-            return edges;
+            return result;
         }
 
         bool directed = false;
+        bool sawDataRow = false;
         std::string line;
         while (std::getline(inputFile, line))
         {
@@ -202,13 +222,7 @@ namespace llb
                 fields = parseCsvRow(line);
             }
 
-            if (fields.size() < 2 || fields[0].empty() || fields[1].empty())
-            {
-                continue;
-            }
-
-            std::string firstKey = fields[0];
-            std::string lowerFirst = firstKey;
+            std::string lowerFirst = fields.empty() ? "" : fields[0];
             std::transform(lowerFirst.begin(), lowerFirst.end(), lowerFirst.begin(),
                 [](unsigned char character)
                 {
@@ -216,6 +230,13 @@ namespace llb
                 });
             if (lowerFirst == "from")
             {
+                continue;
+            }
+
+            sawDataRow = true;
+            if (fields.size() < 2 || fields[0].empty() || fields[1].empty())
+            {
+                ++result.skippedRowCount;
                 continue;
             }
 
@@ -235,10 +256,23 @@ namespace llb
                 }
             }
 
-            edges.push_back(edge);
+            result.edges.push_back(edge);
         }
 
-        return edges;
+        if (!result.edges.empty())
+        {
+            result.status = EdgeLoadStatus::Loaded;
+        }
+        else if (sawDataRow)
+        {
+            result.status = EdgeLoadStatus::Invalid;
+        }
+        else
+        {
+            result.status = EdgeLoadStatus::Empty;
+        }
+
+        return result;
     }
 
     /*

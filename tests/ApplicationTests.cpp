@@ -19,6 +19,7 @@
 #include "ui/DataSourceMenu.h"
 #include "ui/Display.h"
 #include "ui/Menu.h"
+#include "ui/StructureMenu.h"
 
 #include <filesystem>
 
@@ -210,29 +211,93 @@ LLB_TEST(testFileLoadingLayer)
     std::remove(csvPath.c_str());
 }
 
+LLB_TEST(testStructureMenuUsesFallbackData)
+{
+    ScopedCinInput input(
+        "2\n"  // Stack
+        "1\n"  // Display stack
+        "5\n"  // Back to data structure menu
+        "7\n"); // Exit
+    ScopedCoutCapture output;
+
+    llb::StructureMenu::run("tests/does_not_exist.txt");
+
+    expect(contains(output.text(), "Google - https://www.google.com"),
+        "Structure sessions receive fallback records when the selected dataset cannot load.");
+    expect(contains(output.text(), "GeeksforGeeks - https://www.geeksforgeeks.org"),
+        "The complete fallback dataset reaches the selected structure menu.");
+}
+
 LLB_TEST(testEdgeFileLoadingLayer)
 {
     const std::string nodePath = "tests/tmp_graph_nodes.csv";
     const std::string edgePath = "tests/tmp_graph_nodes.edges";
+    const std::string emptyEdgePath = "tests/tmp_empty_graph.edges";
+    const std::string invalidEdgePath = "tests/tmp_invalid_graph.edges";
 
     writeFile(nodePath, "name,role\nAlice,Engineer\nBob,Designer\n");
     writeFile(edgePath,
         "# from|to|weight\n"
         "Alice|Bob|2.5\n"
+        "invalid row\n"
         "Bob|Alice\n");
+    writeFile(emptyEdgePath, "# comments and directives only\n#directed\n\n");
+    writeFile(invalidEdgePath, "missing endpoint\n|Bob|1.0\n");
 
     expectEqual(llb::FileLoader::discoverEdgeFile(nodePath), edgePath,
         "Edge discovery finds the companion .edges file.");
 
-    const std::vector<llb::EdgeRecord> edges = llb::FileLoader::loadEdges(edgePath);
-    expectEqual(edges.size(), 2, "Edge loader skips comments and reads edge rows.");
-    expectEqual(edges[0].from, "Alice", "Edge loader reads the source key.");
-    expectEqual(edges[0].to, "Bob", "Edge loader reads the destination key.");
-    expect(edges[0].weight > 2.49 && edges[0].weight < 2.51, "Edge loader parses the weight.");
-    expect(edges[1].weight > 0.99 && edges[1].weight < 1.01, "Edge loader defaults a missing weight to 1.");
+    const llb::EdgeLoadResult loaded = llb::FileLoader::loadEdges(edgePath);
+    expect(loaded.status == llb::EdgeLoadStatus::Loaded, "Edge loader reports a loaded file.");
+    expectEqual(loaded.edges.size(), 2, "Edge loader reads valid rows around invalid content.");
+    expectEqual(loaded.skippedRowCount, 1, "Edge loader counts skipped invalid rows.");
+    expectEqual(loaded.edges[0].from, "Alice", "Edge loader reads the source key.");
+    expectEqual(loaded.edges[0].to, "Bob", "Edge loader reads the destination key.");
+    expect(loaded.edges[0].weight > 2.49 && loaded.edges[0].weight < 2.51,
+        "Edge loader parses the weight.");
+    expect(loaded.edges[1].weight > 0.99 && loaded.edges[1].weight < 1.01,
+        "Edge loader defaults a missing weight to 1.");
+
+    const llb::EdgeLoadResult empty = llb::FileLoader::loadEdges(emptyEdgePath);
+    expect(empty.status == llb::EdgeLoadStatus::Empty,
+        "Edge loader distinguishes an empty companion file.");
+    expect(empty.edges.empty(), "Empty companion files contain no parsed edges.");
+
+    const llb::EdgeLoadResult invalid = llb::FileLoader::loadEdges(invalidEdgePath);
+    expect(invalid.status == llb::EdgeLoadStatus::Invalid,
+        "Edge loader distinguishes files with only invalid rows.");
+    expectEqual(invalid.skippedRowCount, 2, "Invalid companion files report every skipped row.");
+
+    const llb::EdgeLoadResult missing = llb::FileLoader::loadEdges("tests/no_such_graph.edges");
+    expect(missing.status == llb::EdgeLoadStatus::NotFound,
+        "Edge loader distinguishes a missing companion file.");
 
     expect(llb::FileLoader::discoverEdgeFile("tests/no_such_nodes.csv").empty(),
         "Edge discovery returns empty when no companion file exists.");
+
+    std::remove(nodePath.c_str());
+    std::remove(edgePath.c_str());
+    std::remove(emptyEdgePath.c_str());
+    std::remove(invalidEdgePath.c_str());
+}
+
+LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
+{
+    const std::string nodePath = "tests/tmp_invalid_menu_graph.csv";
+    const std::string edgePath = "tests/tmp_invalid_menu_graph.edges";
+    writeFile(nodePath, "name,role\nAlice,Engineer\nBob,Designer\n");
+    writeFile(edgePath, "invalid row\n");
+
+    ScopedCinInput input(
+        "5\n"  // Graph
+        "6\n"  // Back to data structure menu
+        "7\n"); // Exit
+    ScopedCoutCapture output;
+
+    llb::StructureMenu::run(nodePath);
+
+    expect(contains(output.text(), "contains no valid edge records; skipped 1 row(s)"),
+        "Graph menu reports an invalid companion file accurately.");
 
     std::remove(nodePath.c_str());
     std::remove(edgePath.c_str());
