@@ -78,6 +78,28 @@ namespace llb
         }
 
         /*
+         * Purpose: Print a numbered list of Targets under a caller-supplied heading.
+         * Design: Generalizes printTargetList so traversals and other views can label their output.
+         * Workflow: Handle the empty case, print the heading, then print each Target with a one-based number.
+         * Data Handoff: Receives a heading and a vector snapshot from a session or data structure view.
+         */
+        void printTargets(const std::string& heading, const std::vector<Target>& targets)
+        {
+            if (targets.empty())
+            {
+                printMessage(heading + " (empty)");
+                return;
+            }
+
+            std::cout << '\n' << heading << ":\n";
+
+            for (std::size_t i = 0; i < targets.size(); ++i)
+            {
+                printTarget(targets[i], i + 1);
+            }
+        }
+
+        /*
          * Purpose: Print the currently selected Target.
          * Design: Accepts a pointer so nullptr can cleanly represent "no current Target."
          * Workflow: Show an empty-state message for nullptr, otherwise print the position and Target.

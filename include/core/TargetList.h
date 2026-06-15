@@ -58,6 +58,11 @@ namespace llb
         void addBack(const Target& target);
         bool removeAt(std::size_t position);
 
+        const Target* front() const;
+        const Target* back() const;
+        bool removeFront();
+        bool removeBack();
+
         bool moveForward();
         bool moveBackward();
         bool setCurrentToPosition(std::size_t position);

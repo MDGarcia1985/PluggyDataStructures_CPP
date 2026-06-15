@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "registry/RegistryBase.h"
+#include "registry/OperationRegistry.h"
 
 
 // named container llb = linked list browser
@@ -13,22 +13,34 @@ namespace llb
 {
     class TargetProgram;
 
-    struct CommandPlugin
-    {
-        int id;
-        std::string label;
-        std::function<void(TargetProgram&)> action;
-        bool isExit = false;
-    };
+    using CommandPlugin = Operation<TargetProgram>;
 
-    class CommandRegistry : private RegistryBase<CommandPlugin>
+    class CommandRegistry : public OperationRegistry<TargetProgram>
     {
     public:
         static CommandRegistry& instance();
 
-        bool registerCommand(CommandPlugin command);
-        std::vector<CommandPlugin> commands() const;
-        const CommandPlugin* findById(int id) const;
+        /*
+         * Purpose: Register a valid command for the Target Data Structure Menu.
+         * Design: Requires a positive id and a single Exit while reusing shared insertion policy.
+         * Workflow: Forward the command to the generic insert routine with command-specific rules.
+         * Data Handoff: Receives command metadata from a command module and stores it on success.
+         */
+        bool registerCommand(CommandPlugin command)
+        {
+            return insertOperation(std::move(command), true, false, false);
+        }
+
+        /*
+         * Purpose: Return target commands in stable menu order with Exit last.
+         * Design: Delegates to the shared ordering policy so all registries behave consistently.
+         * Workflow: Forward to the base operations() helper.
+         * Data Handoff: Supplies TargetDataStructureMenu with its executable menu entries.
+         */
+        std::vector<CommandPlugin> commands() const
+        {
+            return operations();
+        }
 
     private:
         CommandRegistry() = default;

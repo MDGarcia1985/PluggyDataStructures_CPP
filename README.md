@@ -1,32 +1,80 @@
 # LinkedListBrowser
 
-LinkedListBrowser is a C++17 learning project that loads TXT and CSV datasets into a doubly linked list. Its UI, registries, commands, sorting support, file loading, and core data structures are separated so new menu systems and plugins can be added without rewriting the generic menu layer.
+LinkedListBrowser is a C++17 learning project that loads TXT and CSV datasets into a family of classic data structures: a doubly linked list, stack, queue, binary search tree, integer-id graph, and separate-chaining hash table. Its UI, registries, sessions, operations, sorting support, file loading, and core data structures are separated so new structures and plugins can be added by reusing one generic registry plus menu-controller spine.
 
 ## Build And Run
 
-From the project root:
+### CMake (recommended)
+
+CMake compiles every source file (including self-registering operation modules) and wires up the test suite for CTest:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp \
-  src/app/*.cpp src/commands/*.cpp src/algorithms/*.cpp \
-  src/core/*.cpp src/io/*.cpp src/registry/*.cpp \
-  src/sorting/*.cpp src/ui/*.cpp \
-  -o LinkedListBrowser
-./LinkedListBrowser
+cmake -S . -B build
+cmake --build build
+./build/LinkedListBrowser        # Windows: .\build\LinkedListBrowser.exe
+ctest --test-dir build --output-on-failure
+```
+
+Operation, command, and sort modules register themselves through global initializers. The build compiles them into an OBJECT library that is linked directly into both executables, so the linker never drops those object files.
+
+### g++ (PowerShell)
+
+From the project root:
+
+```powershell
+$sources = Get-ChildItem -Path src -Recurse -Filter *.cpp |
+  ForEach-Object { $_.FullName }
+
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp $sources -o LinkedListBrowser.exe
+.\LinkedListBrowser.exe
 ```
 
 Build and run tests:
 
+```powershell
+$sources = Get-ChildItem -Path src -Recurse -Filter *.cpp |
+  ForEach-Object { $_.FullName }
+$tests = Get-ChildItem -Path tests -Recurse -Filter *.cpp |
+  ForEach-Object { $_.FullName }
+
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude $tests $sources -o ApplicationTests.exe
+.\ApplicationTests.exe
+```
+
+### g++ (Bash)
+
+From Git Bash, MSYS2 Bash, Linux, or macOS:
+
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/ApplicationTests.cpp \
-  src/app/*.cpp src/commands/*.cpp src/algorithms/*.cpp \
-  src/core/*.cpp src/io/*.cpp src/registry/*.cpp \
-  src/sorting/*.cpp src/ui/*.cpp \
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp \
+  $(find src -name '*.cpp') \
+  -o LinkedListBrowser
+./LinkedListBrowser
+
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude \
+  $(find tests -name '*.cpp') $(find src -name '*.cpp') \
   -o ApplicationTests
 ./ApplicationTests
 ```
 
-On Windows, `.exe` output names may be used. The VS Code task in `.vscode/tasks.json` lists every reorganized source file for `cl.exe`.
+PowerShell uses a backtick for line continuation, not `\`. The commands above avoid PowerShell continuation characters entirely except for the pipeline, where the line may naturally continue after `|`.
+
+The VS Code tasks in `.vscode/tasks.json` configure, build, and test through CMake.
+
+## Data Structures
+
+After choosing a dataset the application opens a Data Structure Menu:
+
+```text
+Linked List  -> browse, add, delete, find, sort
+Stack        -> push, pop, peek (LIFO)
+Queue        -> enqueue, dequeue, peek (FIFO)
+Binary Tree  -> insert, find, remove, in/pre/post/level-order traversals, height
+Graph        -> nodes, adjacency, BFS, DFS, add edge
+Hash Table   -> insert/update, find, erase, bucket view, load factor
+```
+
+Each structure is populated from the currently selected dataset. The graph also reads an optional edge-list companion file (see Dataset Support).
 
 ## Dataset Support
 
@@ -40,15 +88,28 @@ other -> displayed as unsupported
 
 TXT files accept either `fieldOne|fieldTwo` records or ordinary one-item lines. CSV files use the first row as headings, map the first column to `Target::fieldOne()`, and store labeled remaining values in `fieldTwo()`.
 
+### Graph edge files
+
+The graph reuses any node dataset and looks for a companion edge file named `<dataset-base>.edges`. For example, selecting `data/social.csv` loads edges from `data/social.edges`.
+
+```text
+# comment lines start with '#'
+# a line containing only "#directed" makes following edges directed
+fromKey|toKey|weight     # weight optional, defaults to 1.0, undirected by default
+fromKey,toKey,weight     # comma-delimited rows are also accepted
+```
+
+Edges reference nodes by their first field (`Target::fieldOne()`). If no edge file exists, the graph still loads the nodes and edges can be added from the menu.
+
 ## Menu Flow
 
 ```text
 MainMenu
 -> DataSourceMenu
--> TargetDataStructureMenu
--> registered command
--> optional SortTypeMenu
--> registered sorting algorithm
+-> StructureMenu (Linked List / Stack / Queue / Tree / Graph / Hash Table)
+-> MenuController<Registry, Session>
+-> registered operation
+-> (Linked List) optional SortTypeMenu -> registered sorting algorithm
 ```
 
 `Menu` is generic. It only displays string labels, prompts for numbers, validates ranges, returns selected positions, and prints the shared invalid-selection message.
@@ -57,12 +118,26 @@ Menu-specific decisions live in dedicated controllers:
 
 - `MainMenu` starts the application flow.
 - `DataSourceMenu` discovers and classifies datasets.
-- `TargetDataStructureMenu` executes registered list commands.
-- `SortTypeMenu` executes registered sorting algorithms.
+- `StructureMenu` chooses a data structure and builds its session.
+- `MenuController<RegistryT, SessionT>` renders any registry's operations and runs the selected one against the active session.
+- `SortTypeMenu` executes registered sorting algorithms for the linked list.
+
+## Generic Registry And Menu Spine
+
+Every data structure reuses the same four-part pattern:
+
+```text
+RegistryBase<Item>          owns shared item storage
+OperationRegistry<Session>  adds validation, duplicate policy, Exit policy, ordering, lookup
+MenuController<Reg, Session> converts operations to labels and runs the selected one
+XSession                    owns one structure instance plus its load context
+```
+
+Concrete registries (`CommandRegistry`, `SortRegistry`, and the `StructureRegistry<Session>` aliases `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) layer their policy on the shared base.
 
 ## Plugin Registration
 
-Target/list commands are independent source files in `src/commands/`. Each defines a small adapter and registers it with `CommandRegistry`.
+Linked-list commands are independent source files in `src/commands/`, each registering with `CommandRegistry`:
 
 ```cpp
 LLB_REGISTER_COMMAND(9, "New command", llb::newCommand)
@@ -76,76 +151,62 @@ Sorting algorithms register with `SortRegistry`:
 LLB_REGISTER_SORT("Algorithm Name", llb::algorithmCommand)
 ```
 
-`SortRegistry` owns its Exit item and returns it last. Adding an algorithm does not require changing `SortTypeMenu`.
+Operations for the other structures live in `src/operations/` and register with their structure registry through the generic macro:
+
+```cpp
+using TreeOp = llb::Operation<llb::TreeSession>;
+LLB_REGISTER_OPERATION(llb::TreeRegistry::instance(),
+    TreeOp{9, "New tree operation", [](llb::TreeSession& session) { /* ... */ }})
+```
+
+Each `StructureRegistry` seeds its own Exit/Back item and returns it last, so adding an operation never requires editing a menu.
 
 ## Project Layout
 
 ```text
 include/
-  app/
-    App.h
-  core/
-    Header.h
-    Target.h
-    TargetList.h
-    TargetProgram.h
-    TargetQueue.h
-    TargetStack.h
-  io/
-    FileLoader.h
-  registry/
-    RegistryBase.h
-    CommandRegistry.h
-    SortRegistry.h
-  sorting/
-    SortSupport.h
-  ui/
-    Display.h
-    Menu.h
-    MainMenu.h
-    DataSourceMenu.h
-    TargetDataStructureMenu.h
-    SortTypeMenu.h
+  app/        App.h
+  core/       Header.h, Target.h, TargetList.h, TargetProgram.h,
+              TargetStack.h, TargetQueue.h, TargetTree.h,
+              TargetGraph.h, TargetHashTable.h, VisitedSet.h
+  io/         FileLoader.h
+  registry/   RegistryBase.h, Operation.h, OperationRegistry.h,
+              CommandRegistry.h, SortRegistry.h, StructureRegistries.h
+  session/    StackSession.h, QueueSession.h, TreeSession.h,
+              GraphSession.h, HashTableSession.h
+  sorting/    SortSupport.h
+  ui/         Display.h, Menu.h, MenuController.h, MainMenu.h,
+              DataSourceMenu.h, StructureMenu.h,
+              TargetDataStructureMenu.h, SortTypeMenu.h
 
 src/
-  app/
-    App.cpp
-  commands/
-    AddTargetCommand.cpp
-    DeleteTargetCommand.cpp
-    DisplayListCommand.cpp
-    ExitCommand.cpp
-    FindTargetCommand.cpp
-    MoveBackwardCommand.cpp
-    MoveForwardCommand.cpp
-    SortListCommand.cpp
-  algorithms/
-    InsertionSort.cpp
-    SelectionSort.cpp
-  core/
-    Target.cpp
-    TargetList.cpp
-    TargetProgram.cpp
-    TargetQueue.cpp
-    TargetStack.cpp
-  io/
-    FileLoader.cpp
-  registry/
-    CommandRegistry.cpp
-    SortRegistry.cpp
-  sorting/
-    SortSupport.cpp
-  ui/
-    Display.cpp
-    Menu.cpp
-    MainMenu.cpp
-    DataSourceMenu.cpp
-    TargetDataStructureMenu.cpp
-    SortTypeMenu.cpp
+  app/        App.cpp
+  commands/   one file per linked-list command
+  algorithms/ InsertionSort.cpp, SelectionSort.cpp
+  operations/ StackOperations.cpp, QueueOperations.cpp, TreeOperations.cpp,
+              GraphOperations.cpp, HashTableOperations.cpp
+  core/       Target.cpp, TargetList.cpp, TargetProgram.cpp,
+              TargetStack.cpp, TargetQueue.cpp, TargetTree.cpp,
+              TargetGraph.cpp, TargetHashTable.cpp
+  io/         FileLoader.cpp
+  registry/   CommandRegistry.cpp, SortRegistry.cpp
+  session/    StackSession.cpp, QueueSession.cpp, TreeSession.cpp,
+              GraphSession.cpp, HashTableSession.cpp
+  sorting/    SortSupport.cpp
+  ui/         Display.cpp, Menu.cpp, MainMenu.cpp, DataSourceMenu.cpp,
+              StructureMenu.cpp, TargetDataStructureMenu.cpp, SortTypeMenu.cpp
+
+tests/
+  TestHarness.h, TestMain.cpp, ApplicationTests.cpp,
+  TargetTreeTests.cpp, TargetGraphTests.cpp, TargetHashTableTests.cpp
 ```
+
+## Tests
+
+Tests self-register with `LLB_TEST(name)` into a shared `TestRegistry` (mirroring the application's plugin spine). `TestMain.cpp` runs every registered case, prints a pass/fail/assertion summary, and returns a nonzero exit code on failure for CI.
 
 ## Extension Points
 
-Future systems such as tree, graph, hash table, or search menus can reuse `Menu` and follow the existing controller plus registry pattern. Their navigation and registration policies can remain independent from the target-list and sort registries.
+Add a data structure by following the existing quartet: a `core/` structure, an `XSession`, an `XRegistry` alias of `StructureRegistry<XSession>`, and one `src/operations/` file. Route it from `StructureMenu` with `MenuController<XRegistry, XSession>`. No changes to `Menu` or the generic spine are required.
 
 New and modified functions use the standard `Purpose`, `Design`, `Workflow`, and `Data Handoff` header.

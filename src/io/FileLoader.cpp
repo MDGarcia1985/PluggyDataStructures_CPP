@@ -127,6 +127,121 @@ namespace llb
     }
 
     /*
+     * Purpose: Locate the edge-list companion file for a selected node dataset.
+     * Design: Uses the convention <base>.edges so graphs can reuse any node file by name.
+     * Workflow: Strip the node file extension, append .edges, and return the path if it exists.
+     * Data Handoff: Supplies the graph session with an edge file path, or empty when none exists.
+     */
+    std::string FileLoader::discoverEdgeFile(const std::string& nodeFilePath)
+    {
+        std::filesystem::path candidate(nodeFilePath);
+        candidate.replace_extension(".edges");
+
+        std::error_code error;
+        if (std::filesystem::exists(candidate, error) && !error)
+        {
+            return candidate.generic_string();
+        }
+
+        return "";
+    }
+
+    /*
+     * Purpose: Load weighted edges that reference nodes by their first-field key.
+     * Design: Accepts pipe- or comma-delimited rows, an optional header, and a directed directive.
+     * Workflow: Read cleaned lines, honor #directed, split fields, and build each edge record.
+     * Data Handoff: Converts an edge file into EdgeRecord values for the graph session.
+     */
+    std::vector<EdgeRecord> FileLoader::loadEdges(const std::string& edgeFilePath)
+    {
+        std::vector<EdgeRecord> edges;
+        std::ifstream inputFile(edgeFilePath);
+        if (!inputFile.is_open())
+        {
+            return edges;
+        }
+
+        bool directed = false;
+        std::string line;
+        while (std::getline(inputFile, line))
+        {
+            line = trim(line);
+            if (line.empty())
+            {
+                continue;
+            }
+
+            if (line[0] == '#')
+            {
+                std::string directive = line.substr(1);
+                directive = trim(directive);
+                std::transform(directive.begin(), directive.end(), directive.begin(),
+                    [](unsigned char character)
+                    {
+                        return static_cast<char>(std::tolower(character));
+                    });
+                if (directive == "directed")
+                {
+                    directed = true;
+                }
+                continue;
+            }
+
+            std::vector<std::string> fields;
+            if (line.find('|') != std::string::npos)
+            {
+                std::string field;
+                std::istringstream stream(line);
+                while (std::getline(stream, field, '|'))
+                {
+                    fields.push_back(trim(field));
+                }
+            }
+            else
+            {
+                fields = parseCsvRow(line);
+            }
+
+            if (fields.size() < 2 || fields[0].empty() || fields[1].empty())
+            {
+                continue;
+            }
+
+            std::string firstKey = fields[0];
+            std::string lowerFirst = firstKey;
+            std::transform(lowerFirst.begin(), lowerFirst.end(), lowerFirst.begin(),
+                [](unsigned char character)
+                {
+                    return static_cast<char>(std::tolower(character));
+                });
+            if (lowerFirst == "from")
+            {
+                continue;
+            }
+
+            EdgeRecord edge;
+            edge.from = fields[0];
+            edge.to = fields[1];
+            edge.directed = directed;
+            if (fields.size() >= 3 && !fields[2].empty())
+            {
+                try
+                {
+                    edge.weight = std::stod(fields[2]);
+                }
+                catch (const std::exception&)
+                {
+                    edge.weight = 1.0;
+                }
+            }
+
+            edges.push_back(edge);
+        }
+
+        return edges;
+    }
+
+    /*
      * Purpose: Remove leading and trailing whitespace from input text.
      * Design: Preserves interior text while normalizing spaces, tabs, and line endings at the edges.
      * Workflow: Locate the first and last non-whitespace characters and return that substring.

@@ -167,15 +167,43 @@ Includes reflect ownership:
 
 Flat legacy include paths are no longer used.
 
-## Future Systems
+## Generic Structures Spine
 
-New systems can add their own menu controller and registry while reusing `Menu`:
+The registry and menu layers were generalized so every data structure reuses one pattern instead of copying the command/sort registries.
 
 ```text
-HashTableMenu + HashTableRegistry
-TreeMenu + TreeRegistry
-GraphMenu + GraphRegistry
-SearchMenu + SearchRegistry
+RegistryBase<Item>                   shared item storage
+Operation<SessionT>                  id, label, action(SessionT&), isExit
+OperationRegistry<SessionT>          validation, duplicate policy, Exit ordering, lookup
+MenuController<RegistryT, SessionT>   converts operations to labels and runs the selection
+XSession                             owns one structure instance plus its load context
 ```
 
-This avoids coupling future navigation to the target-list or sorting command sets.
+`CommandRegistry` and `SortRegistry` derive from `OperationRegistry<TargetProgram>`; `CommandPlugin` and `SortCommand` are aliases of `Operation<TargetProgram>`. `StructureRegistry<SessionT>` is a single template (aliased as `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) that seeds its own Exit item.
+
+`StructureMenu` sits above the per-structure controllers:
+
+```text
+MainMenu -> DataSourceMenu -> StructureMenu -> MenuController<XRegistry, XSession>
+```
+
+## Implemented Structure Systems
+
+```text
+Linked List   TargetProgram + CommandRegistry + commands
+Stack         StackSession + StackRegistry + StackOperations
+Queue         QueueSession + QueueRegistry + QueueOperations
+Binary Tree   TargetTree + TreeSession + TreeRegistry + TreeOperations
+Graph         TargetGraph (integer-id arena) + VisitedSet + GraphSession + GraphRegistry + GraphOperations
+Hash Table    TargetHashTable (separate chaining) + HashTableSession + HashTableRegistry + HashTableOperations
+```
+
+Core containers remain domain-neutral; sessions own interactive I/O; operation modules in `src/operations/` self-register. The graph reads an optional `<dataset>.edges` companion file via `FileLoader`.
+
+## Build Note: Self-Registration
+
+Operation, command, and sort modules register through global initializers. The CMake build compiles all `src/` files into an OBJECT library linked directly into both executables, ensuring the linker retains those object files so registration runs before `main`.
+
+## Future Systems
+
+The same spine supports further additions (for example a search system) by adding a `core/` structure, an `XSession`, an `XRegistry` alias, and one `src/operations/` module, then routing it from `StructureMenu`. No changes to `Menu` or the generic spine are required.

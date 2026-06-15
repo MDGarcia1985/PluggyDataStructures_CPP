@@ -18,8 +18,8 @@ namespace llb
 
     /*
      * Purpose: Remove and return the oldest queued target.
-     * Design: Treats the list head as the queue front to demonstrate FIFO behavior.
-     * Workflow: Snapshot the list, copy the first target, remove the first node, and return the copy.
+     * Design: Treats the list head as the queue front and removes it in constant time.
+     * Workflow: Reject empty queues, copy the front Target, remove the front node, and return the copy.
      * Data Handoff: Returns the removed Target to the caller or throws if the queue is empty.
      */
     Target TargetQueue::dequeue()
@@ -29,10 +29,25 @@ namespace llb
             throw std::runtime_error("Cannot dequeue from an empty target queue.");
         }
 
-        const std::vector<Target> targets = queue_.toVector();
-        Target front = targets.front();
-        queue_.removeAt(1);
+        Target front = *queue_.front();
+        queue_.removeFront();
         return front;
+    }
+
+    /*
+     * Purpose: Read the oldest queued target without removing it.
+     * Design: Treats the list head as the queue front for a constant-time peek.
+     * Workflow: Reject empty queues, then return a copy of the front Target.
+     * Data Handoff: Returns the front Target to the caller or throws if the queue is empty.
+     */
+    Target TargetQueue::peek() const
+    {
+        if (isEmpty())
+        {
+            throw std::runtime_error("Cannot peek an empty target queue.");
+        }
+
+        return *queue_.front();
     }
 
     /*
@@ -44,6 +59,17 @@ namespace llb
     bool TargetQueue::isEmpty() const
     {
         return queue_.isEmpty();
+    }
+
+    /*
+     * Purpose: Report how many targets the queue holds.
+     * Design: Delegates to TargetList so size tracking stays in one place.
+     * Workflow: Return the backing list size.
+     * Data Handoff: Gives callers the current queue length.
+     */
+    std::size_t TargetQueue::size() const
+    {
+        return queue_.size();
     }
 
     /*

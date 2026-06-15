@@ -23,6 +23,7 @@ namespace llb
         void printMessage(const std::string& message);
         void printTarget(const Target& target, std::size_t position = 0);
         void printTargetList(const std::vector<Target>& targets);
+        void printTargets(const std::string& heading, const std::vector<Target>& targets);
         void printCurrentTarget(const Target* target, std::size_t position);
         void printSearchResults(const std::vector<TargetSearchResult>& results);
     }

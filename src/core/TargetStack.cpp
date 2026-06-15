@@ -18,8 +18,8 @@ namespace llb
 
     /*
      * Purpose: Remove and return the most recently pushed target.
-     * Design: Treats the list tail as the stack top to demonstrate LIFO behavior.
-     * Workflow: Snapshot the list, copy the last target, remove the last node, and return the copy.
+     * Design: Treats the list tail as the stack top and removes it in constant time.
+     * Workflow: Reject empty stacks, copy the tail Target, remove the tail node, and return the copy.
      * Data Handoff: Returns the removed Target to the caller or throws if the stack is empty.
      */
     Target TargetStack::pop()
@@ -29,10 +29,25 @@ namespace llb
             throw std::runtime_error("Cannot pop from an empty target stack.");
         }
 
-        const std::vector<Target> targets = stack_.toVector();
-        Target top = targets.back();
-        stack_.removeAt(stack_.size());
+        Target top = *stack_.back();
+        stack_.removeBack();
         return top;
+    }
+
+    /*
+     * Purpose: Read the most recently pushed target without removing it.
+     * Design: Treats the list tail as the stack top for a constant-time peek.
+     * Workflow: Reject empty stacks, then return a copy of the tail Target.
+     * Data Handoff: Returns the top Target to the caller or throws if the stack is empty.
+     */
+    Target TargetStack::peek() const
+    {
+        if (isEmpty())
+        {
+            throw std::runtime_error("Cannot peek an empty target stack.");
+        }
+
+        return *stack_.back();
     }
 
     /*
@@ -44,6 +59,17 @@ namespace llb
     bool TargetStack::isEmpty() const
     {
         return stack_.isEmpty();
+    }
+
+    /*
+     * Purpose: Report how many targets the stack holds.
+     * Design: Delegates to TargetList so size tracking stays in one place.
+     * Workflow: Return the backing list size.
+     * Data Handoff: Gives callers the current stack depth.
+     */
+    std::size_t TargetStack::size() const
+    {
+        return stack_.size();
     }
 
     /*

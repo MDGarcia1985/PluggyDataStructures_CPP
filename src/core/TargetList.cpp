@@ -246,6 +246,86 @@ namespace llb
     }
 
     /*
+     * Purpose: Read the Target stored at the front (head) of the list.
+     * Design: Returns a pointer so nullptr can represent an empty list.
+     * Workflow: Return the address of the head node's data when the list is not empty.
+     * Data Handoff: Gives queue-style callers O(1) read access to the oldest Target.
+     */
+    const Target* TargetList::front() const
+    {
+        return head_ != nullptr ? &head_->data : nullptr;
+    }
+
+    /*
+     * Purpose: Read the Target stored at the back (tail) of the list.
+     * Design: Returns a pointer so nullptr can represent an empty list.
+     * Workflow: Return the address of the tail node's data when the list is not empty.
+     * Data Handoff: Gives stack-style callers O(1) read access to the newest Target.
+     */
+    const Target* TargetList::back() const
+    {
+        return tail_ != nullptr ? &tail_->data : nullptr;
+    }
+
+    /*
+     * Purpose: Remove the Target at the front (head) of the list in constant time.
+     * Design: Reuses removeAt(1), whose lookup returns the head node without walking the chain.
+     * Workflow: Reject empty lists, then delegate to removeAt for the first position.
+     * Data Handoff: Supports queue dequeue without copying the whole list to a vector.
+     */
+    bool TargetList::removeFront()
+    {
+        if (head_ == nullptr)
+        {
+            return false;
+        }
+
+        return removeAt(1);
+    }
+
+    /*
+     * Purpose: Remove the Target at the back (tail) of the list in constant time.
+     * Design: Uses the maintained tail pointer instead of walking to the final node.
+     * Workflow: Detach the tail, fix current and head/tail links, delete the node, and update count.
+     * Data Handoff: Supports stack pop without copying the whole list to a vector.
+     */
+    bool TargetList::removeBack()
+    {
+        if (tail_ == nullptr)
+        {
+            return false;
+        }
+
+        Node* nodeToDelete = tail_;
+
+        if (nodeToDelete == current_)
+        {
+            current_ = nodeToDelete->previous;
+        }
+
+        if (nodeToDelete->previous != nullptr)
+        {
+            nodeToDelete->previous->next = nullptr;
+            tail_ = nodeToDelete->previous;
+        }
+        else
+        {
+            head_ = nullptr;
+            tail_ = nullptr;
+        }
+
+        delete nodeToDelete;
+        --count_;
+
+        if (count_ == 0)
+        {
+            current_ = nullptr;
+        }
+
+        return true;
+    }
+
+    /*
      * Purpose: Move the current pointer to the next Target.
      * Design: Wraps from tail back to head so navigation can keep cycling.
      * Workflow: Reject empty lists, then advance current_ or wrap to head_.

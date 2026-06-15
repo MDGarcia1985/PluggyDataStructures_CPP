@@ -12,7 +12,9 @@ namespace llb
     public:
         void enqueue(const Target& target);
         Target dequeue();
+        Target peek() const;
         bool isEmpty() const;
+        std::size_t size() const;
         void display() const;
     };
 }

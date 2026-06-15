@@ -1,56 +1,63 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: cl.exe build application tests",
-            "command": "cl.exe",
+            "label": "CMake configure",
+            "type": "shell",
+            "command": "cmake",
             "args": [
-                "/Zi",
-                "/EHsc",
-                "/nologo",
-                "/std:c++17",
-                "/I${workspaceFolder}\\include",
-                "/Fe${workspaceFolder}\\tests\\ApplicationTests.exe",
-                "${workspaceFolder}\\tests\\ApplicationTests.cpp",
-                "${workspaceFolder}\\src\\app\\App.cpp",
-                "${workspaceFolder}\\src\\commands\\AddTargetCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\DeleteTargetCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\DisplayListCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\ExitCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\FindTargetCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\MoveBackwardCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\MoveForwardCommand.cpp",
-                "${workspaceFolder}\\src\\commands\\SortListCommand.cpp",
-                "${workspaceFolder}\\src\\algorithms\\InsertionSort.cpp",
-                "${workspaceFolder}\\src\\algorithms\\SelectionSort.cpp",
-                "${workspaceFolder}\\src\\core\\Target.cpp",
-                "${workspaceFolder}\\src\\core\\TargetList.cpp",
-                "${workspaceFolder}\\src\\core\\TargetProgram.cpp",
-                "${workspaceFolder}\\src\\core\\TargetQueue.cpp",
-                "${workspaceFolder}\\src\\core\\TargetStack.cpp",
-                "${workspaceFolder}\\src\\io\\FileLoader.cpp",
-                "${workspaceFolder}\\src\\registry\\CommandRegistry.cpp",
-                "${workspaceFolder}\\src\\registry\\SortRegistry.cpp",
-                "${workspaceFolder}\\src\\sorting\\SortSupport.cpp",
-                "${workspaceFolder}\\src\\ui\\DataSourceMenu.cpp",
-                "${workspaceFolder}\\src\\ui\\Display.cpp",
-                "${workspaceFolder}\\src\\ui\\MainMenu.cpp",
-                "${workspaceFolder}\\src\\ui\\Menu.cpp",
-                "${workspaceFolder}\\src\\ui\\SortTypeMenu.cpp",
-                "${workspaceFolder}\\src\\ui\\TargetDataStructureMenu.cpp"
+                "-S",
+                ".",
+                "-B",
+                "build"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [
-                "$msCompile"
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake build",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": [
+                "CMake configure"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Builds the complete reorganized source tree and application tests."
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Configures and builds the application and tests with CMake."
+        },
+        {
+            "label": "CMake test",
+            "type": "shell",
+            "command": "ctest",
+            "args": [
+                "--output-on-failure"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "dependsOn": [
+                "CMake build"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Runs the registered test suite through CTest."
         }
-    ],
-    "version": "2.0.0"
+    ]
 }

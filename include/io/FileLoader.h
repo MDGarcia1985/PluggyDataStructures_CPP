@@ -24,6 +24,14 @@ namespace llb
         Unsupported
     };
 
+    struct EdgeRecord
+    {
+        std::string from;
+        std::string to;
+        double weight = 1.0;
+        bool directed = false;
+    };
+
     class FileLoader
     {
     public:
@@ -31,6 +39,9 @@ namespace llb
         static DataFileType fileType(const std::string& filePath);
         static bool loadTargetsFromFile(const std::string& filePath, TargetList& targets);
         static void loadFallbackTargets(TargetList& targets);
+
+        static std::string discoverEdgeFile(const std::string& nodeFilePath);
+        static std::vector<EdgeRecord> loadEdges(const std::string& edgeFilePath);
 
     private:
         static std::string trim(const std::string& text);

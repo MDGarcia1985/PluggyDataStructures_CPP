@@ -1173,3 +1173,68 @@ SearchMenu and SearchRegistry
 ```
 
 This milestone establishes the folder and dependency pattern those systems can follow.
+
+## Completed Milestone: Generic Structures Framework + Tree, Graph, Hash Table
+
+Date completed:
+
+```text
+2026-06-13
+```
+
+The data-structure menus described as future work were implemented on a single reusable spine instead of copying the command/sort registries per structure.
+
+### Generic spine
+
+```text
+RegistryBase<Item>             owns shared item storage (unchanged)
+Operation<SessionT>            id, label, action(SessionT&), isExit
+OperationRegistry<SessionT>    validation, duplicate policy, Exit ordering, findById
+MenuController<RegistryT, SessionT>  label adapter + execution loop
+```
+
+`CommandRegistry` and `SortRegistry` were migrated onto this spine. `CommandPlugin` and `SortCommand` are now aliases of `Operation<TargetProgram>`, so existing command and sort modules, macros, and tests were preserved unchanged. `TargetDataStructureMenu` became a thin wrapper over `MenuController`.
+
+### Structure registries
+
+`StructureRegistry<SessionT>` is one template that seeds its own Exit/Back item, rejects duplicate labels, and exposes Exit-last ordering. The named registries are aliases:
+
+```text
+StackRegistry, QueueRegistry, TreeRegistry, GraphRegistry, HashTableRegistry
+```
+
+### Sessions and operations
+
+Each structure has an `XSession` (owns the structure plus interactive I/O) and an `src/operations/XOperations.cpp` module that registers its operations with `LLB_REGISTER_OPERATION`. A new top-level `StructureMenu` builds the chosen session from the selected dataset and runs `MenuController<XRegistry, XSession>`.
+
+Deviation from the plan: operations are grouped one file per structure (for example `TreeOperations.cpp`) rather than one file per operation. The registry/menu pattern is identical; this keeps the change reviewable. Splitting into one-op-per-file later is mechanical.
+
+### Core structures
+
+```text
+TargetList        gained O(1) front/back/removeFront/removeBack; stack/queue now O(1)
+TargetTree        BST keyed by targetLess; rule-of-five; iterative destroy;
+                  insert/find/remove; in/pre/post/level-order traversals; height
+TargetGraph       integer-id arena + adjacency list; BFS (queue) and DFS (stack);
+                  VisitedSet (vector<bool>) prevents revisits in cyclic graphs
+TargetHashTable   separate chaining backed by TargetList; case-insensitive key;
+                  rehash when load factor > 0.75; bucket views for display
+```
+
+### Data input
+
+Tree, stack, queue, and hash sessions load from the selected TXT/CSV dataset. The graph also reads an optional `<dataset-base>.edges` companion file (`from|to|weight`, undirected by default, `#directed` directive supported). `FileLoader::discoverEdgeFile()` and `FileLoader::loadEdges()` were added, plus the sample `data/social.csv` and `data/social.edges`.
+
+### Tests and build
+
+The test suite became a self-registering harness: `LLB_TEST(name)` registers into a shared `TestRegistry`, and `TestMain.cpp` runs all cases, prints a summary, and returns a CI-friendly exit code. New per-structure test files cover the tree, graph, and hash table.
+
+A `CMakeLists.txt` was added. Registration modules are compiled into an OBJECT library that is linked directly into both executables so the linker cannot drop the global initializers that drive self-registration. CTest runs the suite. The VS Code tasks now configure, build, and test through CMake.
+
+### Validation completed
+
+```text
+C++17 application build with -Wall -Wextra -pedantic (clean)
+C++17 test build with -Wall -Wextra -pedantic (clean)
+23 test cases, 208 assertions, all passing
+```
