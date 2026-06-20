@@ -1,3 +1,12 @@
+/*
+ * File: TargetQueue.h
+ * Description: Declares a first-in-first-out Target adapter backed by TargetList.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
+ */
+
 #pragma once
 
 #include "core/TargetList.h"

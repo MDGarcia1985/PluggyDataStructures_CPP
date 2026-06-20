@@ -109,16 +109,34 @@ namespace llbtest
         std::streambuf* original_;
 
     public:
+        /*
+         * Purpose: Begin capturing text written to std::cout.
+         * Design: Swaps cout's stream buffer for an owned string stream.
+         * Workflow: Save the original buffer and install the capture buffer.
+         * Data Handoff: Redirects global console output into captured_.
+         */
         ScopedCoutCapture()
             : captured_(), original_(std::cout.rdbuf(captured_.rdbuf()))
         {
         }
 
+        /*
+         * Purpose: End console capture and restore std::cout.
+         * Design: Uses deterministic scope cleanup to prevent leaked redirection.
+         * Workflow: Reinstall the stream buffer saved by the constructor.
+         * Data Handoff: Returns subsequent console output to its original destination.
+         */
         ~ScopedCoutCapture()
         {
             std::cout.rdbuf(original_);
         }
 
+        /*
+         * Purpose: Return all console text captured so far.
+         * Design: Exposes a value copy without leaking the internal stream.
+         * Workflow: Read and return captured_.str().
+         * Data Handoff: Gives assertion code the accumulated console output.
+         */
         std::string text() const
         {
             return captured_.str();
@@ -138,11 +156,23 @@ namespace llbtest
         std::streambuf* original_;
 
     public:
+        /*
+         * Purpose: Begin feeding scripted text through std::cin.
+         * Design: Swaps cin's stream buffer for an owned input string stream.
+         * Workflow: Store input text, save the original buffer, and install the scripted buffer.
+         * Data Handoff: Redirects interactive reads to deterministic test input.
+         */
         explicit ScopedCinInput(const std::string& input)
             : input_(input), original_(std::cin.rdbuf(input_.rdbuf()))
         {
         }
 
+        /*
+         * Purpose: End scripted input and restore std::cin.
+         * Design: Uses deterministic scope cleanup to prevent leaked redirection.
+         * Workflow: Reinstall the stream buffer saved by the constructor.
+         * Data Handoff: Returns subsequent input reads to their original source.
+         */
         ~ScopedCinInput()
         {
             std::cin.rdbuf(original_);
@@ -164,18 +194,36 @@ namespace llbtest
     class TestRegistry
     {
     public:
+        /*
+         * Purpose: Return the process-wide test registry.
+         * Design: Uses a function-local static to support safe self-registration.
+         * Workflow: Construct on first access and return the shared instance thereafter.
+         * Data Handoff: Gives test modules and the runner access to one case collection.
+         */
         static TestRegistry& instance()
         {
             static TestRegistry registry;
             return registry;
         }
 
+        /*
+         * Purpose: Register one named test callback.
+         * Design: Stores lightweight TestCase values in registration order.
+         * Workflow: Move the name and callback into the case vector and report success.
+         * Data Handoff: Receives generated test metadata and preserves it for the runner.
+         */
         bool add(const std::string& name, std::function<void()> run)
         {
             cases_.push_back(TestCase{name, std::move(run)});
             return true;
         }
 
+        /*
+         * Purpose: Expose all registered test cases without allowing mutation.
+         * Design: Returns a const reference to avoid copying callback objects.
+         * Workflow: Return cases_ directly.
+         * Data Handoff: Gives the test runner read-only access to registration order.
+         */
         const std::vector<TestCase>& cases() const
         {
             return cases_;

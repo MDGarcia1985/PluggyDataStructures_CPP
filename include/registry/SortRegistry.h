@@ -1,6 +1,10 @@
 /*
  * File: SortRegistry.h
  * Description: Declares sorting algorithm registration and ordering.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #pragma once

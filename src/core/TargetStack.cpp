@@ -1,3 +1,12 @@
+/*
+ * File: TargetStack.cpp
+ * Description: Implements last-in-first-out Target operations over TargetList.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "core/TargetStack.h"
 #include "ui/Display.h"
 

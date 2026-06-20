@@ -13,6 +13,7 @@
 #include "registry/StructureRegistries.h"
 #include "session/GraphSession.h"
 #include "session/HashTableSession.h"
+#include "session/MapSession.h"
 #include "session/QueueSession.h"
 #include "session/StackSession.h"
 #include "session/TreeSession.h"
@@ -99,12 +100,13 @@ namespace llb
                 "Binary Search Tree",
                 "Graph",
                 "Hash Table",
+                "Map / Word Frequency Counter",
                 "Exit"
             };
 
             const std::size_t choice = Menu::select("Data Structure Menu", labels);
 
-            if (choice == 6)
+            if (choice == 7)
             {
                 Display::printMessage("Exiting program.");
                 return;
@@ -150,6 +152,13 @@ namespace llb
                 {
                     HashTableSession session(loadTargets(dataFilePath));
                     MenuController<HashTableRegistry, HashTableSession>::run("Hash Table Menu", session);
+                    break;
+                }
+                case 6:
+                {
+                    MapSession session(loadTargets(dataFilePath));
+                    MenuController<MapRegistry, MapSession>::run(
+                        "Map / Word Frequency Counter Menu", session);
                     break;
                 }
                 default:

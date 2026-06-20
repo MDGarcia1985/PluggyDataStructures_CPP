@@ -8,6 +8,8 @@ LinkedListBrowser is a C++17 learning project that loads TXT and CSV datasets in
 
 CMake compiles every source file (including self-registering operation modules) and wires up the test suite for CTest:
 
+For single-configuration generators such as Makefiles or Ninja:
+
 ```bash
 cmake -S . -B build
 cmake --build build

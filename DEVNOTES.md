@@ -1412,3 +1412,118 @@ CTest passed unit_tests
 ```
 
 The Windows documentation now includes `--config Debug`, `ctest -C Debug`, and the generated `build/Debug/LinkedListBrowser.exe` path required by Visual Studio's multi-configuration layout.
+
+## Completed Milestone: Map Word Frequency Counter And Documentation Audit
+
+Date completed:
+
+```text
+2026-06-20
+```
+
+This milestone adds the map-focused module as a first-class structure system and records the repository-wide documentation revision.
+
+### Completed: First-class map structure
+
+The word-frequency feature follows the same structure spine as stack, queue, tree, graph, and hash table:
+
+```text
+StructureMenu
+-> MenuController<MapRegistry, MapSession>
+-> registered MapOperations
+-> MapSession
+-> TargetMap
+-> std::map<std::string, int>
+```
+
+
+### Completed: TargetMap ownership
+
+`TargetMap` owns the actual ordered word-frequency storage:
+
+```cpp
+std::map<std::string, int> wordCounts_;
+```
+
+Its responsibilities are:
+
+```text
+replace counts from supplied text
+replace counts from both fields of loaded Targets
+split words at punctuation boundaries
+normalize uppercase letters to lowercase
+maintain total and unique counts
+return alphabetically ordered read-only frequencies
+report maximum frequency and all ties
+clear state and report emptiness
+```
+
+The parser uses safe unsigned-character casts with `std::isalnum` and `std::tolower`. A compound such as `hello-world` is counted as `hello` and `world`; case variants share one normalized key.
+
+`TargetMap` does not read from `std::cin`, write to `std::cout`, or depend on menu/display classes, so its behavior is directly testable.
+
+### Completed: Map session and operations
+
+`MapSession` owns one `TargetMap` and a snapshot of the selected dataset. It handles full-line typed input, user messages, frequency-table rendering, tied-most-frequent output, summary output, and empty-state guards.
+
+`MapOperations.cpp` registers:
+
+```text
+1 Count words from typed text
+2 Count words from loaded target data
+3 Show word frequencies
+4 Show most frequent word(s)
+5 Show word count summary
+6 Clear word counts
+```
+
+`MapRegistry` supplies the ID `0` Back operation and keeps it last. `StructureMenu` now presents Map / Word Frequency Counter as the seventh structure choice and Exit as the eighth choice.
+
+### Completed: Documentation revision
+
+Tracked C++ files were audited for the standard file banner:
+
+```text
+File
+Description
+Copyright
+Contact
+Site
+SPDX-License-Identifier
+```
+
+New and previously undocumented function bodies were documented using:
+
+```text
+Purpose
+Design
+Workflow
+Data Handoff
+```
+
+Test functions and inline helper functions touched by the audit follow the same contract. The established `Purpose` spelling was retained consistently.
+
+### Completed: Tests and validation
+
+`TargetMapTests.cpp` covers:
+
+```text
+case-insensitive word counting
+punctuation and compound splitting
+alphabetical map iteration
+total and unique counts
+most-frequent ties
+Target field analysis
+replacement and clear behavior
+MapSession preload integration
+MapRegistry operation wiring
+```
+
+Validation completed:
+
+```text
+C++17 GCC 15.2 build with -Wall -Wextra -pedantic (clean)
+29 test cases, 240 assertions, all passing
+tracked C++ file-header audit passed
+git diff --check passed
+```

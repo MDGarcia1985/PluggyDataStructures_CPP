@@ -19,6 +19,8 @@ main.cpp
    -> Graph: GraphSession -> GraphRegistry -> MenuController
       -> optional companion edge file through FileLoader
    -> Hash Table: HashTableSession -> HashTableRegistry -> MenuController
+   -> Map / Word Frequency Counter: MapSession -> MapRegistry -> MenuController
+      -> TargetMap -> std::map<std::string, int>
 ```
 
 `MainMenu` loads the selected dataset once to report its size. `StructureMenu` creates a fresh structure session for every selection and applies the same selected-file-or-fallback policy before construction.
@@ -207,7 +209,7 @@ MenuController<RegistryT, SessionT>   converts operations to labels and runs the
 XSession                             owns one structure instance plus its load context
 ```
 
-`CommandRegistry` and `SortRegistry` derive from `OperationRegistry<TargetProgram>`; `CommandPlugin` and `SortCommand` are aliases of `Operation<TargetProgram>`. `StructureRegistry<SessionT>` is a single template (aliased as `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`) that seeds its own ID `0` Back item. Registered structure operations require positive IDs, unique IDs, and unique labels.
+`CommandRegistry` and `SortRegistry` derive from `OperationRegistry<TargetProgram>`; `CommandPlugin` and `SortCommand` are aliases of `Operation<TargetProgram>`. `StructureRegistry<SessionT>` is a single template (aliased as `StackRegistry`, `QueueRegistry`, `TreeRegistry`, `GraphRegistry`, `HashTableRegistry`, `MapRegistry`) that seeds its own ID `0` Back item. Registered structure operations require positive IDs, unique IDs, and unique labels.
 
 `StructureMenu` sits above the per-structure controllers:
 
@@ -224,9 +226,69 @@ Queue         QueueSession + QueueRegistry + QueueOperations
 Binary Tree   TargetTree + TreeSession + TreeRegistry + TreeOperations
 Graph         TargetGraph (integer-id arena) + VisitedSet + GraphSession + GraphRegistry + GraphOperations
 Hash Table    TargetHashTable (separate chaining) + HashTableSession + HashTableRegistry + HashTableOperations
+Map           TargetMap (ordered word counts) + MapSession + MapRegistry + MapOperations
 ```
 
 Sessions own interactive I/O and operation modules in `src/operations/` self-register. Every session receives either the selected dataset or the shared fallback dataset. The graph reads an optional `<dataset>.edges` companion file via `FileLoader`.
+
+## Map / Word Frequency Boundary
+
+`core/TargetMap` owns word-frequency data and analysis. Its storage is:
+
+```cpp
+std::map<std::string, int> wordCounts_;
+```
+
+The ordered map keeps frequency output alphabetical without a second sorting pass. `TargetMap` has no console or menu dependencies. It:
+
+```text
+parses supplied text into alphanumeric words
+splits punctuation-separated compounds such as hello-world
+normalizes letters to lowercase
+counts total and unique words
+reports the maximum frequency and every tied word
+counts both fields from a Target snapshot
+clears and exposes frequencies through read-only access
+```
+
+`session/MapSession` owns interactive input and output plus the selected dataset snapshot. It replaces the current analysis when counting typed text or loaded Target fields, guards empty-state displays, and delegates all parsing and storage to `TargetMap`.
+
+`operations/MapOperations.cpp` registers six positive-ID operations with `MapRegistry`:
+
+```text
+count typed text
+count loaded Target fields
+show alphabetical frequencies
+show most-frequent word or ties
+show summary metrics
+clear counts
+```
+
+The registry-owned ID `0` Back item remains last in the generated menu.
+
+## Documentation Convention
+
+Tracked C++ source and header files carry a file banner containing:
+
+```text
+File
+Description
+Copyright
+Contact
+Site
+SPDX-License-Identifier
+```
+
+Function implementations use the project comment contract:
+
+```text
+Purpose
+Design
+Workflow
+Data Handoff
+```
+
+These comments describe ownership and movement of data without changing dependency direction.
 
 ## Graph Edge Diagnostics
 

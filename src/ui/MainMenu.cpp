@@ -1,6 +1,10 @@
 /*
  * File: MainMenu.cpp
  * Description: Implements the top-level application menu flow.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "core/TargetProgram.h"

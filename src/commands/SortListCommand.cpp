@@ -1,6 +1,10 @@
 /*
  * File: SortListCommand.cpp
  * Description: Registers the command that opens the Sort Type Menu.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "core/TargetProgram.h"

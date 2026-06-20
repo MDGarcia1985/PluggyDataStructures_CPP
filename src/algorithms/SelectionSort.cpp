@@ -1,6 +1,10 @@
 /*
  * File: SelectionSort.cpp
  * Description: Implements and registers selection sort.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "registry/SortRegistry.h"

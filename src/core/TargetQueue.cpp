@@ -1,3 +1,12 @@
+/*
+ * File: TargetQueue.cpp
+ * Description: Implements first-in-first-out Target operations over TargetList.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "core/TargetQueue.h"
 #include "ui/Display.h"
 

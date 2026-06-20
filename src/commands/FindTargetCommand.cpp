@@ -1,6 +1,10 @@
 /*
  * File: FindTargetCommand.cpp
  * Description: Registers the find-target command.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "core/TargetProgram.h"

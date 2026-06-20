@@ -26,6 +26,12 @@
 
 using namespace llbtest;
 
+/*
+ * Purpose: Verify Target field storage, mutation, formatting, and matching.
+ * Design: Exercises the complete public value-object contract in one focused case.
+ * Workflow: Construct a Target, inspect it, search it, mutate it, and inspect it again.
+ * Data Handoff: Sends field and search text through Target and reads resulting values.
+ */
 LLB_TEST(testTargetModel)
 {
     llb::Target target("OpenAI", "https://www.openai.com");
@@ -44,6 +50,12 @@ LLB_TEST(testTargetModel)
     expectEqual(target.fieldTwo(), "https://example.com", "Target updates second field.");
 }
 
+/*
+ * Purpose: Verify linked-list storage, navigation, search, removal, and value semantics.
+ * Design: Covers ordinary, wraparound, copy, assignment, and move behavior.
+ * Workflow: Populate a list, navigate and mutate it, then copy and move instances.
+ * Data Handoff: Sends Targets into list nodes and reads pointers, snapshots, and metrics.
+ */
 LLB_TEST(testTargetListDataStructure)
 {
     llb::TargetList targets;
@@ -109,6 +121,12 @@ LLB_TEST(testTargetListDataStructure)
     expect(copied.isEmpty(), "Move constructor leaves source empty.");
 }
 
+/*
+ * Purpose: Verify front and back removal across multi-item and empty states.
+ * Design: Focuses on endpoint pointer maintenance as the list shrinks to zero.
+ * Workflow: Remove alternating endpoints and assert size, values, and empty behavior.
+ * Data Handoff: Mutates list-owned nodes and reads updated endpoint pointers.
+ */
 LLB_TEST(testListEndpointRemoval)
 {
     llb::TargetList targets;
@@ -132,6 +150,12 @@ LLB_TEST(testListEndpointRemoval)
     expect(targets.back() == nullptr, "back is null on an empty list.");
 }
 
+/*
+ * Purpose: Verify LIFO stack behavior and FIFO queue behavior.
+ * Design: Runs parallel two-item scenarios through each TargetList adapter.
+ * Workflow: Add two Targets, peek, remove both, and assert ordering and emptiness.
+ * Data Handoff: Sends Targets through adapter APIs and reads returned values and sizes.
+ */
 LLB_TEST(testStackAndQueue)
 {
     llb::TargetStack stack;
@@ -155,6 +179,12 @@ LLB_TEST(testStackAndQueue)
     expect(queue.isEmpty(), "Queue reports empty after dequeues.");
 }
 
+/*
+ * Purpose: Verify text, CSV, fallback, extension, and discovery file-loading paths.
+ * Design: Uses temporary fixtures to cover valid, malformed, empty, and missing input.
+ * Workflow: Write fixtures, load and inspect Targets, check discovery, then remove fixtures.
+ * Data Handoff: Moves fixture text through FileLoader into TargetList snapshots.
+ */
 LLB_TEST(testFileLoadingLayer)
 {
     const std::string path = "tests/tmp_targets_test.txt";
@@ -211,13 +241,19 @@ LLB_TEST(testFileLoadingLayer)
     std::remove(csvPath.c_str());
 }
 
+/*
+ * Purpose: Verify structure sessions receive fallback Targets when loading fails.
+ * Design: Drives the interactive menu with scripted input and captured output.
+ * Workflow: Open the stack, display it, return, exit, and inspect displayed records.
+ * Data Handoff: Feeds simulated choices into StructureMenu and captures console text.
+ */
 LLB_TEST(testStructureMenuUsesFallbackData)
 {
     ScopedCinInput input(
         "2\n"  // Stack
         "1\n"  // Display stack
         "5\n"  // Back to data structure menu
-        "7\n"); // Exit
+        "8\n"); // Exit
     ScopedCoutCapture output;
 
     llb::StructureMenu::run("tests/does_not_exist.txt");
@@ -228,6 +264,12 @@ LLB_TEST(testStructureMenuUsesFallbackData)
         "The complete fallback dataset reaches the selected structure menu.");
 }
 
+/*
+ * Purpose: Verify companion edge discovery, parsing, defaults, and status reporting.
+ * Design: Uses valid, mixed, empty, invalid, and missing edge fixtures.
+ * Workflow: Write files, invoke edge APIs, assert results, and remove fixtures.
+ * Data Handoff: Moves edge-list text into EdgeLoadResult records for inspection.
+ */
 LLB_TEST(testEdgeFileLoadingLayer)
 {
     const std::string nodePath = "tests/tmp_graph_nodes.csv";
@@ -281,6 +323,12 @@ LLB_TEST(testEdgeFileLoadingLayer)
     std::remove(invalidEdgePath.c_str());
 }
 
+/*
+ * Purpose: Verify the graph menu reports an invalid companion edge file accurately.
+ * Design: Combines temporary graph files with scripted menu interaction.
+ * Workflow: Open the graph menu, return, exit, and inspect captured diagnostics.
+ * Data Handoff: Feeds files and choices into StructureMenu and captures its message text.
+ */
 LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
 {
     const std::string nodePath = "tests/tmp_invalid_menu_graph.csv";
@@ -291,7 +339,7 @@ LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
     ScopedCinInput input(
         "5\n"  // Graph
         "6\n"  // Back to data structure menu
-        "7\n"); // Exit
+        "8\n"); // Exit
     ScopedCoutCapture output;
 
     llb::StructureMenu::run(nodePath);
@@ -303,6 +351,12 @@ LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
     std::remove(edgePath.c_str());
 }
 
+/*
+ * Purpose: Verify display formatting for records, lists, headings, and empty state.
+ * Design: Captures console output from each public display helper.
+ * Workflow: Invoke helpers with representative values and assert visible fragments.
+ * Data Handoff: Sends Targets into Display and captures rendered console text.
+ */
 LLB_TEST(testDisplayLayer)
 {
     {
@@ -346,6 +400,12 @@ LLB_TEST(testDisplayLayer)
     }
 }
 
+/*
+ * Purpose: Verify command registration, menu rendering, input validation, and sort wiring.
+ * Design: Exercises registry policy and interactive helpers with scripted streams.
+ * Workflow: Register commands, inspect ordering, drive menus, and validate sort metadata.
+ * Data Handoff: Routes callbacks and simulated input through registries and menu APIs.
+ */
 LLB_TEST(testMenuAndCommandLayer)
 {
     bool commandRan = false;
@@ -424,6 +484,12 @@ LLB_TEST(testMenuAndCommandLayer)
         "Generic sort comparison orders targets without dataset assumptions.");
 }
 
+/*
+ * Purpose: Verify TargetProgram coordinates loading, navigation, search, mutation, and exit.
+ * Design: Drives the controller against a temporary dataset with captured I/O.
+ * Workflow: Load data, perform each user workflow, assert state and messages, then clean up.
+ * Data Handoff: Moves fixture and scripted user data through TargetProgram into TargetList.
+ */
 LLB_TEST(testControllerLayer)
 {
     const std::string path = "tests/tmp_program_data.txt";

@@ -19,6 +19,12 @@ using namespace llbtest;
 
 namespace
 {
+    /*
+     * Purpose: Join a traversal's Target keys into a compact assertion value.
+     * Design: Uses comma separation so visit order remains visible in failures.
+     * Workflow: Scan Targets, append separators after the first, and append each key.
+     * Data Handoff: Converts a Target vector into one comparable string.
+     */
     std::string keysOf(const std::vector<llb::Target>& targets)
     {
         std::string joined;
@@ -33,6 +39,12 @@ namespace
         return joined;
     }
 
+    /*
+     * Purpose: Build the shared connected graph fixture used by traversal tests.
+     * Design: Uses deterministic nodes and undirected edges for stable visit orders.
+     * Workflow: Add fixture nodes, connect them by key, and return the graph.
+     * Data Handoff: Produces an independently owned TargetGraph for each caller.
+     */
     llb::TargetGraph buildSampleGraph()
     {
         llb::TargetGraph graph;
@@ -49,6 +61,12 @@ namespace
     }
 }
 
+/*
+ * Purpose: Verify graph node insertion, edge creation, and adjacency access.
+ * Design: Builds a small weighted graph with resolvable node keys.
+ * Workflow: Add nodes and edges, then assert counts and neighbor metadata.
+ * Data Handoff: Sends Targets and edge values into the graph and reads adjacency views.
+ */
 LLB_TEST(testGraphNodesAndEdges)
 {
     llb::TargetGraph graph = buildSampleGraph();
@@ -67,6 +85,12 @@ LLB_TEST(testGraphNodesAndEdges)
     expect(!graph.addEdgeByKey("A", "Z", 1.0, false), "Edge insertion fails for a missing endpoint.");
 }
 
+/*
+ * Purpose: Verify breadth-first and depth-first traversal orders.
+ * Design: Uses a deterministic graph whose visit sequences are easy to assert.
+ * Workflow: Build connected nodes, run both traversals, and compare snapshots.
+ * Data Handoff: Passes a start id into traversal methods and reads Target vectors.
+ */
 LLB_TEST(testGraphTraversals)
 {
     llb::TargetGraph graph = buildSampleGraph();
@@ -81,6 +105,12 @@ LLB_TEST(testGraphTraversals)
     expectEqual(dfsOrder.front().fieldOne(), "A", "DFS starts at the requested node.");
 }
 
+/*
+ * Purpose: Verify traversals terminate and visit each node once when cycles exist.
+ * Design: Creates a cycle that requires visited-node tracking.
+ * Workflow: Connect nodes cyclically, traverse, and assert the bounded result.
+ * Data Handoff: Sends cyclic adjacency into traversal and reads de-duplicated visits.
+ */
 LLB_TEST(testGraphHandlesCycles)
 {
     llb::TargetGraph graph;
@@ -98,6 +128,12 @@ LLB_TEST(testGraphHandlesCycles)
     expectEqual(graph.depthFirst(start).size(), 3, "DFS terminates on a cyclic graph.");
 }
 
+/*
+ * Purpose: Verify graph session edge loading and operation registration.
+ * Design: Covers integration among node snapshots, edge records, and GraphRegistry.
+ * Workflow: Construct a session, inspect graph state, and validate menu operations.
+ * Data Handoff: Routes loaded nodes and edges into the session and reads integration state.
+ */
 LLB_TEST(testGraphSessionAndRegistry)
 {
     std::vector<llb::Target> nodes;

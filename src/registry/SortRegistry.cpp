@@ -1,6 +1,10 @@
 /*
  * File: SortRegistry.cpp
  * Description: Implements sorting algorithm registration and its registry-owned Exit entry.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "registry/SortRegistry.h"

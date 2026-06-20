@@ -1,6 +1,10 @@
 /*
  * File: RegistryBase.h
  * Description: Declares shared storage behavior for plugin registries.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #pragma once

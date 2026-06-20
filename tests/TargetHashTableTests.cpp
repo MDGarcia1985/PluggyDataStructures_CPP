@@ -16,6 +16,12 @@
 
 using namespace llbtest;
 
+/*
+ * Purpose: Verify insertion, lookup, and removal in separate-chaining storage.
+ * Design: Exercises successful and missing-key paths with representative entries.
+ * Workflow: Insert records, find keys case-insensitively, erase one, and assert state changes.
+ * Data Handoff: Sends Targets into the table and reads lookup results and size metrics.
+ */
 LLB_TEST(testHashInsertFindErase)
 {
     llb::TargetHashTable table;
@@ -36,6 +42,12 @@ LLB_TEST(testHashInsertFindErase)
     expect(!table.erase("Alice"), "Erasing a missing key fails.");
 }
 
+/*
+ * Purpose: Verify reinserting an existing key updates its value without duplication.
+ * Design: Uses two records with one logical key and different values.
+ * Workflow: Insert both records, inspect size, and retrieve the final stored value.
+ * Data Handoff: Passes replacement data through insert and reads it back through find.
+ */
 LLB_TEST(testHashUpdateExistingKey)
 {
     llb::TargetHashTable table;
@@ -49,6 +61,12 @@ LLB_TEST(testHashUpdateExistingKey)
     expectEqual(found.fieldTwo(), "second", "Hash table keeps the latest value for a key.");
 }
 
+/*
+ * Purpose: Verify resizing preserves entries and the configured load-factor bound.
+ * Design: Inserts enough distinct keys to exceed the initial bucket capacity.
+ * Workflow: Fill the table, assert growth and load factor, then find a retained entry.
+ * Data Handoff: Sends generated Targets through rehashing and reads one result afterward.
+ */
 LLB_TEST(testHashResizing)
 {
     llb::TargetHashTable table(8);
@@ -68,6 +86,12 @@ LLB_TEST(testHashResizing)
     expectEqual(found.fieldTwo(), "7", "Resized table preserves stored values.");
 }
 
+/*
+ * Purpose: Verify session preload behavior and hash operation registration.
+ * Design: Covers integration between loaded Targets, TargetHashTable, and HashTableRegistry.
+ * Workflow: Construct a session, inspect its table, then validate registry ordering.
+ * Data Handoff: Routes a Target snapshot into the session and reads table and registry state.
+ */
 LLB_TEST(testHashSessionAndRegistry)
 {
     std::vector<llb::Target> items;

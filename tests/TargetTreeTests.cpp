@@ -18,6 +18,12 @@ using namespace llbtest;
 
 namespace
 {
+    /*
+     * Purpose: Join a traversal's Target keys into a compact assertion value.
+     * Design: Uses comma separation so visit order remains visible in failures.
+     * Workflow: Scan Targets, append separators after the first, and append each key.
+     * Data Handoff: Converts a Target vector into one comparable string.
+     */
     std::string keysOf(const std::vector<llb::Target>& targets)
     {
         std::string joined;
@@ -32,6 +38,12 @@ namespace
         return joined;
     }
 
+    /*
+     * Purpose: Build the shared balanced-shape tree fixture used by tree tests.
+     * Design: Inserts deterministic keys that exercise left and right branches.
+     * Workflow: Create a tree, insert each fixture key, and return it by value.
+     * Data Handoff: Produces an independently owned TargetTree for each caller.
+     */
     llb::TargetTree buildSampleTree()
     {
         llb::TargetTree tree;
@@ -43,6 +55,12 @@ namespace
     }
 }
 
+/*
+ * Purpose: Verify insertion and traversal ordering in the target tree.
+ * Design: Uses keys inserted out of order to expose binary-search-tree behavior.
+ * Workflow: Insert records, traverse the tree, and compare the resulting key order.
+ * Data Handoff: Sends Targets into the tree and reads ordered traversal snapshots.
+ */
 LLB_TEST(testTreeInsertionAndOrdering)
 {
     llb::TargetTree tree = buildSampleTree();
@@ -57,6 +75,12 @@ LLB_TEST(testTreeInsertionAndOrdering)
     expectEqual(keysOf(tree.levelOrder()), "M,F,T,B,G,Q,Z", "Level-order traversal is breadth-first.");
 }
 
+/*
+ * Purpose: Verify the tree rejects duplicate logical keys.
+ * Design: Inserts two records whose first fields identify the same key.
+ * Workflow: Insert the original, attempt the duplicate, and inspect size and value retention.
+ * Data Handoff: Sends competing Targets into the tree and reads the preserved entry.
+ */
 LLB_TEST(testTreeDuplicateRejection)
 {
     llb::TargetTree tree;
@@ -66,6 +90,12 @@ LLB_TEST(testTreeDuplicateRejection)
     expectEqual(tree.size(), 2, "Tree stores distinct targets only.");
 }
 
+/*
+ * Purpose: Verify tree search finds existing keys and rejects absent keys.
+ * Design: Covers both branches of the public lookup contract.
+ * Workflow: Populate the tree and issue successful and unsuccessful searches.
+ * Data Handoff: Sends key text into search and reads returned Target pointers.
+ */
 LLB_TEST(testTreeSearch)
 {
     llb::TargetTree tree = buildSampleTree();
@@ -79,6 +109,12 @@ LLB_TEST(testTreeSearch)
     expect(!tree.contains(llb::Target("Q", "different")), "Contains distinguishes by value.");
 }
 
+/*
+ * Purpose: Verify removal for the tree's structural node cases.
+ * Design: Removes selected nodes and confirms ordering and counts remain valid.
+ * Workflow: Build a tree, remove keys, and inspect the resulting traversal.
+ * Data Handoff: Sends keys into erase and reads updated tree snapshots.
+ */
 LLB_TEST(testTreeRemoval)
 {
     llb::TargetTree tree = buildSampleTree();
@@ -93,6 +129,12 @@ LLB_TEST(testTreeRemoval)
     expect(!tree.removeByKey("X"), "Removing a missing key fails.");
 }
 
+/*
+ * Purpose: Verify tree copies own independent node structures.
+ * Design: Exercises copy construction and assignment before mutating one copy.
+ * Workflow: Populate a source, copy it, alter one instance, and compare state.
+ * Data Handoff: Copies tree-owned Targets between instances without sharing nodes.
+ */
 LLB_TEST(testTreeCopySemantics)
 {
     llb::TargetTree original = buildSampleTree();
@@ -113,6 +155,12 @@ LLB_TEST(testTreeCopySemantics)
     expect(assigned.isEmpty(), "Move constructor empties the source.");
 }
 
+/*
+ * Purpose: Verify tree session preload behavior and operation registration.
+ * Design: Covers integration between dataset snapshots, TargetTree, and TreeRegistry.
+ * Workflow: Construct a session, inspect its tree, and validate registered menu items.
+ * Data Handoff: Routes loaded Targets into the session and reads tree and registry state.
+ */
 LLB_TEST(testTreeSessionAndRegistry)
 {
     std::vector<llb::Target> items;

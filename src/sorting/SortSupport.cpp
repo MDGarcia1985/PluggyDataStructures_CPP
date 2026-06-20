@@ -1,6 +1,10 @@
 /*
  * File: SortSupport.cpp
  * Description: Implements generic comparison, timing, and sorted-list replacement.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "sorting/SortSupport.h"

@@ -1,6 +1,10 @@
 /*
  * File: DataSourceMenu.cpp
  * Description: Implements dynamic dataset discovery and type-aware selection.
+ * Copyright (c) 2026 Michael Garcia
+ * Contact: michael@mandedesign.studio
+ * Site: https://mandedesign.studio
+ * SPDX-License-Identifier: MIT
  */
 
 #include "io/FileLoader.h"
