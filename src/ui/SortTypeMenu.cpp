@@ -13,8 +13,8 @@
 #include "ui/SortTypeMenu.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Display registered sort commands and execute the selected algorithm.

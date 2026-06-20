@@ -14,8 +14,8 @@
 #include "ui/StructureMenu.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Start dataset selection and hand control to the data structure menu.

@@ -24,10 +24,10 @@ namespace
      * Workflow: Scan Targets, append separators after the first, and append each key.
      * Data Handoff: Converts a Target vector into one comparable string.
      */
-    std::string keysOf(const std::vector<llb::Target>& targets)
+    std::string keysOf(const std::vector<pds::Target>& targets)
     {
         std::string joined;
-        for (const llb::Target& target : targets)
+        for (const pds::Target& target : targets)
         {
             if (!joined.empty())
             {
@@ -44,12 +44,12 @@ namespace
      * Workflow: Create a tree, insert each fixture key, and return it by value.
      * Data Handoff: Produces an independently owned TargetTree for each caller.
      */
-    llb::TargetTree buildSampleTree()
+    pds::TargetTree buildSampleTree()
     {
-        llb::TargetTree tree;
+        pds::TargetTree tree;
         for (const char* key : {"M", "F", "T", "B", "G", "Q", "Z"})
         {
-            tree.insert(llb::Target(key, ""));
+            tree.insert(pds::Target(key, ""));
         }
         return tree;
     }
@@ -63,7 +63,7 @@ namespace
  */
 LLB_TEST(testTreeInsertionAndOrdering)
 {
-    llb::TargetTree tree = buildSampleTree();
+    pds::TargetTree tree = buildSampleTree();
 
     expectEqual(tree.size(), 7, "Tree counts inserted nodes.");
     expectEqual(tree.height(), 3, "Balanced sample tree has height three.");
@@ -83,10 +83,10 @@ LLB_TEST(testTreeInsertionAndOrdering)
  */
 LLB_TEST(testTreeDuplicateRejection)
 {
-    llb::TargetTree tree;
-    expect(tree.insert(llb::Target("Alpha", "1")), "First insertion succeeds.");
-    expect(!tree.insert(llb::Target("Alpha", "1")), "Exact duplicate insertion is rejected.");
-    expect(tree.insert(llb::Target("Alpha", "2")), "Same key with different value is allowed.");
+    pds::TargetTree tree;
+    expect(tree.insert(pds::Target("Alpha", "1")), "First insertion succeeds.");
+    expect(!tree.insert(pds::Target("Alpha", "1")), "Exact duplicate insertion is rejected.");
+    expect(tree.insert(pds::Target("Alpha", "2")), "Same key with different value is allowed.");
     expectEqual(tree.size(), 2, "Tree stores distinct targets only.");
 }
 
@@ -98,15 +98,15 @@ LLB_TEST(testTreeDuplicateRejection)
  */
 LLB_TEST(testTreeSearch)
 {
-    llb::TargetTree tree = buildSampleTree();
+    pds::TargetTree tree = buildSampleTree();
 
-    llb::Target found;
+    pds::Target found;
     expect(tree.findByKey("g", found), "Find locates a key case-insensitively.");
     expectEqual(found.fieldOne(), "G", "Find returns the matching target.");
     expect(!tree.findByKey("X", found), "Find reports a missing key.");
 
-    expect(tree.contains(llb::Target("Q", "")), "Contains finds an exact target.");
-    expect(!tree.contains(llb::Target("Q", "different")), "Contains distinguishes by value.");
+    expect(tree.contains(pds::Target("Q", "")), "Contains finds an exact target.");
+    expect(!tree.contains(pds::Target("Q", "different")), "Contains distinguishes by value.");
 }
 
 /*
@@ -117,7 +117,7 @@ LLB_TEST(testTreeSearch)
  */
 LLB_TEST(testTreeRemoval)
 {
-    llb::TargetTree tree = buildSampleTree();
+    pds::TargetTree tree = buildSampleTree();
 
     expect(tree.removeByKey("F"), "Removing a two-child node succeeds.");
     expectEqual(tree.size(), 6, "Size decreases after removal.");
@@ -137,20 +137,20 @@ LLB_TEST(testTreeRemoval)
  */
 LLB_TEST(testTreeCopySemantics)
 {
-    llb::TargetTree original = buildSampleTree();
+    pds::TargetTree original = buildSampleTree();
 
-    llb::TargetTree copied(original);
+    pds::TargetTree copied(original);
     expectEqual(copied.size(), original.size(), "Copy constructor preserves size.");
     expectEqual(keysOf(copied.inOrder()), keysOf(original.inOrder()), "Copy reproduces traversal.");
 
     copied.removeByKey("M");
     expectEqual(original.size(), 7, "Mutating a copy does not affect the original.");
 
-    llb::TargetTree assigned;
+    pds::TargetTree assigned;
     assigned = original;
     expectEqual(keysOf(assigned.inOrder()), keysOf(original.inOrder()), "Copy assignment reproduces traversal.");
 
-    llb::TargetTree moved(std::move(assigned));
+    pds::TargetTree moved(std::move(assigned));
     expectEqual(moved.size(), 7, "Move constructor transfers nodes.");
     expect(assigned.isEmpty(), "Move constructor empties the source.");
 }
@@ -163,29 +163,29 @@ LLB_TEST(testTreeCopySemantics)
  */
 LLB_TEST(testTreeSessionAndRegistry)
 {
-    std::vector<llb::Target> items;
-    items.push_back(llb::Target("Mango", "fruit"));
-    items.push_back(llb::Target("Apple", "fruit"));
-    items.push_back(llb::Target("Pear", "fruit"));
+    std::vector<pds::Target> items;
+    items.push_back(pds::Target("Mango", "fruit"));
+    items.push_back(pds::Target("Apple", "fruit"));
+    items.push_back(pds::Target("Pear", "fruit"));
 
-    llb::TreeSession session(items);
+    pds::TreeSession session(items);
     expectEqual(session.tree().size(), 3, "Tree session loads all items.");
     expectEqual(keysOf(session.tree().inOrder()), "Apple,Mango,Pear", "Tree session sorts loaded items.");
 
-    const auto operations = llb::TreeRegistry::instance().operations();
+    const auto operations = pds::TreeRegistry::instance().operations();
     expect(operations.size() >= 2, "Tree registry holds registered operations.");
     expect(operations.back().isExit, "Tree registry keeps Exit last.");
 
-    using TreeOp = llb::Operation<llb::TreeSession>;
-    expect(!llb::TreeRegistry::instance().registerOperation(
-        TreeOp{1, "Duplicate tree operation id", [](llb::TreeSession&) {}}),
+    using TreeOp = pds::Operation<pds::TreeSession>;
+    expect(!pds::TreeRegistry::instance().registerOperation(
+        TreeOp{1, "Duplicate tree operation id", [](pds::TreeSession&) {}}),
         "Tree registry rejects a duplicate operation id.");
-    expect(!llb::TreeRegistry::instance().registerOperation(
-        TreeOp{-1, "Invalid tree operation id", [](llb::TreeSession&) {}}),
+    expect(!pds::TreeRegistry::instance().registerOperation(
+        TreeOp{-1, "Invalid tree operation id", [](pds::TreeSession&) {}}),
         "Tree registry rejects a nonpositive operation id.");
 
     std::size_t idOneCount = 0;
-    for (const TreeOp& operation : llb::TreeRegistry::instance().operations())
+    for (const TreeOp& operation : pds::TreeRegistry::instance().operations())
     {
         if (operation.id == 1)
         {

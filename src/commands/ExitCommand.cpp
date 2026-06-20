@@ -12,7 +12,7 @@
 #include "ui/Display.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -30,4 +30,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_EXIT_COMMAND(8, "Exit", llb::exitCommand)
+LLB_REGISTER_EXIT_COMMAND(8, "Exit", pds::exitCommand)

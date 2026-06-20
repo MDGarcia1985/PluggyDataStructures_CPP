@@ -157,7 +157,7 @@ Command and structure operations require positive, unique IDs. ID `0` is reserve
 Linked-list commands are independent source files in `src/commands/`, each registering with `CommandRegistry`:
 
 ```cpp
-LLB_REGISTER_COMMAND(9, "New command", llb::newCommand)
+LLB_REGISTER_COMMAND(9, "New command", pds::newCommand)
 ```
 
 Exit commands use `LLB_REGISTER_EXIT_COMMAND`. `CommandRegistry` orders regular commands by ID and always moves Exit to the end.
@@ -165,15 +165,15 @@ Exit commands use `LLB_REGISTER_EXIT_COMMAND`. `CommandRegistry` orders regular 
 Sorting algorithms register with `SortRegistry`:
 
 ```cpp
-LLB_REGISTER_SORT("Algorithm Name", llb::algorithmCommand)
+LLB_REGISTER_SORT("Algorithm Name", pds::algorithmCommand)
 ```
 
 Operations for the other structures live in `src/operations/` and register with their structure registry through the generic macro:
 
 ```cpp
-using TreeOp = llb::Operation<llb::TreeSession>;
-LLB_REGISTER_OPERATION(llb::TreeRegistry::instance(),
-    TreeOp{9, "New tree operation", [](llb::TreeSession& session) { /* ... */ }})
+using TreeOp = pds::Operation<pds::TreeSession>;
+LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+    TreeOp{9, "New tree operation", [](pds::TreeSession& session) { /* ... */ }})
 ```
 
 Each `StructureRegistry` seeds its own ID `0` Exit/Back item, rejects duplicate operation IDs and labels, and returns Exit/Back last. Adding an operation never requires editing a menu.

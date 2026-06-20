@@ -11,8 +11,8 @@
 #include "ui/Display.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Build a map session with a snapshot of the selected dataset.

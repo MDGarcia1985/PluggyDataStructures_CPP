@@ -12,8 +12,8 @@
 #include <cctype>
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Create an empty word-frequency map.

@@ -11,16 +11,16 @@
 #include "session/StackSession.h"
 
 
-using StackOp = llb::Operation<llb::StackSession>;
+using StackOp = pds::Operation<pds::StackSession>;
 
-LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
-    StackOp{1, "Display stack (top first)", [](llb::StackSession& session) { session.display(); }})
+LLB_REGISTER_OPERATION(pds::StackRegistry::instance(),
+    StackOp{1, "Display stack (top first)", [](pds::StackSession& session) { session.display(); }})
 
-LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
-    StackOp{2, "Push a target", [](llb::StackSession& session) { session.pushFromUser(); }})
+LLB_REGISTER_OPERATION(pds::StackRegistry::instance(),
+    StackOp{2, "Push a target", [](pds::StackSession& session) { session.pushFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
-    StackOp{3, "Pop the top target", [](llb::StackSession& session) { session.popAndShow(); }})
+LLB_REGISTER_OPERATION(pds::StackRegistry::instance(),
+    StackOp{3, "Pop the top target", [](pds::StackSession& session) { session.popAndShow(); }})
 
-LLB_REGISTER_OPERATION(llb::StackRegistry::instance(),
-    StackOp{4, "Peek at the top target", [](llb::StackSession& session) { session.peekAndShow(); }})
+LLB_REGISTER_OPERATION(pds::StackRegistry::instance(),
+    StackOp{4, "Peek at the top target", [](pds::StackSession& session) { session.peekAndShow(); }})

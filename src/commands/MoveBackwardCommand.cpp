@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(3, "Go backward and display the current target", llb::moveBackwardCommand)
+LLB_REGISTER_COMMAND(3, "Go backward and display the current target", pds::moveBackwardCommand)

@@ -12,8 +12,8 @@
 #include "core/Header.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     template <typename Item>
     class RegistryBase

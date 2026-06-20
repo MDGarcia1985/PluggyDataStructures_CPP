@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(1, "Display the list", llb::displayListCommand)
+LLB_REGISTER_COMMAND(1, "Display the list", pds::displayListCommand)

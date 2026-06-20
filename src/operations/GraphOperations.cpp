@@ -11,19 +11,19 @@
 #include "session/GraphSession.h"
 
 
-using GraphOp = llb::Operation<llb::GraphSession>;
+using GraphOp = pds::Operation<pds::GraphSession>;
 
-LLB_REGISTER_OPERATION(llb::GraphRegistry::instance(),
-    GraphOp{1, "Show nodes", [](llb::GraphSession& session) { session.showNodes(); }})
+LLB_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{1, "Show nodes", [](pds::GraphSession& session) { session.showNodes(); }})
 
-LLB_REGISTER_OPERATION(llb::GraphRegistry::instance(),
-    GraphOp{2, "Show adjacency list", [](llb::GraphSession& session) { session.showAdjacency(); }})
+LLB_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{2, "Show adjacency list", [](pds::GraphSession& session) { session.showAdjacency(); }})
 
-LLB_REGISTER_OPERATION(llb::GraphRegistry::instance(),
-    GraphOp{3, "Breadth-first search from node", [](llb::GraphSession& session) { session.breadthFirstFromUser(); }})
+LLB_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{3, "Breadth-first search from node", [](pds::GraphSession& session) { session.breadthFirstFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::GraphRegistry::instance(),
-    GraphOp{4, "Depth-first search from node", [](llb::GraphSession& session) { session.depthFirstFromUser(); }})
+LLB_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{4, "Depth-first search from node", [](pds::GraphSession& session) { session.depthFirstFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::GraphRegistry::instance(),
-    GraphOp{5, "Add an edge", [](llb::GraphSession& session) { session.addEdgeFromUser(); }})
+LLB_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{5, "Add an edge", [](pds::GraphSession& session) { session.addEdgeFromUser(); }})

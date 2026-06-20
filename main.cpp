@@ -11,11 +11,11 @@
 
 /*
  * Purpose: Start the application and return its process status.
- * Design: Keeps the global entry point minimal by delegating startup to llb::runApp.
+ * Design: Keeps the global entry point minimal by delegating startup to pds::runApp.
  * Workflow: Invoke the application runner and return its result to the operating system.
- * Data Handoff: Passes the application exit code from llb::runApp to the process host.
+ * Data Handoff: Passes the application exit code from pds::runApp to the process host.
  */
 int main()
 {
-    return llb::runApp();
+    return pds::runApp();
 }

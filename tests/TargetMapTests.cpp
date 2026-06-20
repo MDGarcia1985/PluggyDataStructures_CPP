@@ -24,7 +24,7 @@ using namespace llbtest;
  */
 LLB_TEST(testMapCountsNormalizedText)
 {
-    llb::TargetMap map;
+    pds::TargetMap map;
     map.countText("Hello hello world! This world is a hello-world test.");
 
     expectEqual(static_cast<std::size_t>(map.totalWords()), 10, "Map counts every word occurrence.");
@@ -45,7 +45,7 @@ LLB_TEST(testMapCountsNormalizedText)
  */
 LLB_TEST(testMapMostFrequentTies)
 {
-    llb::TargetMap map;
+    pds::TargetMap map;
     map.countText("beta alpha beta alpha gamma");
 
     const std::vector<std::string> words = map.mostFrequentWords();
@@ -62,12 +62,12 @@ LLB_TEST(testMapMostFrequentTies)
  */
 LLB_TEST(testMapCountsTargetFields)
 {
-    llb::TargetMap map;
+    pds::TargetMap map;
     map.countText("obsolete");
 
-    const std::vector<llb::Target> targets = {
-        llb::Target("Red Apple", "Fresh"),
-        llb::Target("Green apple", "Fresh fruit")
+    const std::vector<pds::Target> targets = {
+        pds::Target("Red Apple", "Fresh"),
+        pds::Target("Green apple", "Fresh fruit")
     };
     map.countTargetFields(targets);
 
@@ -85,18 +85,18 @@ LLB_TEST(testMapCountsTargetFields)
  */
 LLB_TEST(testMapClearSessionAndRegistry)
 {
-    llb::TargetMap map;
+    pds::TargetMap map;
     map.countText("one two two");
     map.clear();
 
     expect(map.isEmpty(), "Clear removes every map entry.");
     expectEqual(static_cast<std::size_t>(map.totalWords()), 0, "Clear resets the total count.");
 
-    llb::MapSession session({llb::Target("Alpha", "Beta")});
+    pds::MapSession session({pds::Target("Alpha", "Beta")});
     session.countWordsFromLoadedTargets();
     expectEqual(static_cast<std::size_t>(session.map().totalWords()), 2, "Map session analyzes loaded targets.");
 
-    const auto operations = llb::MapRegistry::instance().operations();
+    const auto operations = pds::MapRegistry::instance().operations();
     expectEqual(operations.size(), 7, "Map registry exposes six operations and Back.");
     expect(operations.back().isExit, "Map registry keeps Back last.");
 }

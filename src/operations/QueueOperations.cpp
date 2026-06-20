@@ -11,16 +11,16 @@
 #include "session/QueueSession.h"
 
 
-using QueueOp = llb::Operation<llb::QueueSession>;
+using QueueOp = pds::Operation<pds::QueueSession>;
 
-LLB_REGISTER_OPERATION(llb::QueueRegistry::instance(),
-    QueueOp{1, "Display queue (front first)", [](llb::QueueSession& session) { session.display(); }})
+LLB_REGISTER_OPERATION(pds::QueueRegistry::instance(),
+    QueueOp{1, "Display queue (front first)", [](pds::QueueSession& session) { session.display(); }})
 
-LLB_REGISTER_OPERATION(llb::QueueRegistry::instance(),
-    QueueOp{2, "Enqueue a target", [](llb::QueueSession& session) { session.enqueueFromUser(); }})
+LLB_REGISTER_OPERATION(pds::QueueRegistry::instance(),
+    QueueOp{2, "Enqueue a target", [](pds::QueueSession& session) { session.enqueueFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::QueueRegistry::instance(),
-    QueueOp{3, "Dequeue the front target", [](llb::QueueSession& session) { session.dequeueAndShow(); }})
+LLB_REGISTER_OPERATION(pds::QueueRegistry::instance(),
+    QueueOp{3, "Dequeue the front target", [](pds::QueueSession& session) { session.dequeueAndShow(); }})
 
-LLB_REGISTER_OPERATION(llb::QueueRegistry::instance(),
-    QueueOp{4, "Peek at the front target", [](llb::QueueSession& session) { session.peekAndShow(); }})
+LLB_REGISTER_OPERATION(pds::QueueRegistry::instance(),
+    QueueOp{4, "Peek at the front target", [](pds::QueueSession& session) { session.peekAndShow(); }})

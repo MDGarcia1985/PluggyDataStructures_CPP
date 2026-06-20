@@ -24,14 +24,14 @@ using namespace llbtest;
  */
 LLB_TEST(testHashInsertFindErase)
 {
-    llb::TargetHashTable table;
-    table.insert(llb::Target("Alice", "Engineer"));
-    table.insert(llb::Target("Bob", "Designer"));
-    table.insert(llb::Target("Carol", "Manager"));
+    pds::TargetHashTable table;
+    table.insert(pds::Target("Alice", "Engineer"));
+    table.insert(pds::Target("Bob", "Designer"));
+    table.insert(pds::Target("Carol", "Manager"));
 
     expectEqual(table.size(), 3, "Hash table counts inserted entries.");
 
-    llb::Target found;
+    pds::Target found;
     expect(table.find("bob", found), "Hash table finds an entry case-insensitively.");
     expectEqual(found.fieldTwo(), "Designer", "Hash table returns the stored value.");
     expect(!table.find("Dave", found), "Hash table reports a missing key.");
@@ -50,13 +50,13 @@ LLB_TEST(testHashInsertFindErase)
  */
 LLB_TEST(testHashUpdateExistingKey)
 {
-    llb::TargetHashTable table;
-    table.insert(llb::Target("Key", "first"));
-    table.insert(llb::Target("Key", "second"));
+    pds::TargetHashTable table;
+    table.insert(pds::Target("Key", "first"));
+    table.insert(pds::Target("Key", "second"));
 
     expectEqual(table.size(), 1, "Re-inserting a key updates rather than duplicates.");
 
-    llb::Target found;
+    pds::Target found;
     expect(table.find("Key", found), "Updated key is still found.");
     expectEqual(found.fieldTwo(), "second", "Hash table keeps the latest value for a key.");
 }
@@ -69,19 +69,19 @@ LLB_TEST(testHashUpdateExistingKey)
  */
 LLB_TEST(testHashResizing)
 {
-    llb::TargetHashTable table(8);
+    pds::TargetHashTable table(8);
     expectEqual(table.bucketCount(), 8, "Hash table starts with the requested bucket count.");
 
     for (int index = 0; index < 12; ++index)
     {
-        table.insert(llb::Target("Key" + std::to_string(index), std::to_string(index)));
+        table.insert(pds::Target("Key" + std::to_string(index), std::to_string(index)));
     }
 
     expectEqual(table.size(), 12, "Hash table stores every distinct key.");
     expect(table.bucketCount() > 8, "Hash table grows once the load factor is exceeded.");
     expect(table.loadFactor() <= 0.75, "Hash table keeps the load factor at or below the threshold.");
 
-    llb::Target found;
+    pds::Target found;
     expect(table.find("Key7", found), "Entries remain findable after resizing.");
     expectEqual(found.fieldTwo(), "7", "Resized table preserves stored values.");
 }
@@ -94,17 +94,17 @@ LLB_TEST(testHashResizing)
  */
 LLB_TEST(testHashSessionAndRegistry)
 {
-    std::vector<llb::Target> items;
-    items.push_back(llb::Target("Alice", "Engineer"));
-    items.push_back(llb::Target("Bob", "Designer"));
+    std::vector<pds::Target> items;
+    items.push_back(pds::Target("Alice", "Engineer"));
+    items.push_back(pds::Target("Bob", "Designer"));
 
-    llb::HashTableSession session(items);
+    pds::HashTableSession session(items);
     expectEqual(session.table().size(), 2, "Hash session loads all items.");
 
-    llb::Target found;
+    pds::Target found;
     expect(session.table().find("Alice", found), "Hash session entries are findable.");
 
-    const auto operations = llb::HashTableRegistry::instance().operations();
+    const auto operations = pds::HashTableRegistry::instance().operations();
     expect(operations.size() >= 2, "Hash registry holds registered operations.");
     expect(operations.back().isExit, "Hash registry keeps Exit last.");
 }

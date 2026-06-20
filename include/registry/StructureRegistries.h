@@ -12,8 +12,8 @@
 #include "registry/OperationRegistry.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     class StackSession;
     class QueueSession;

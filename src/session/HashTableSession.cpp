@@ -13,8 +13,8 @@
 #include <iomanip>
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Build a hash table session preloaded from the selected dataset.

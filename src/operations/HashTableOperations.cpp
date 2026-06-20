@@ -11,19 +11,19 @@
 #include "session/HashTableSession.h"
 
 
-using HashOp = llb::Operation<llb::HashTableSession>;
+using HashOp = pds::Operation<pds::HashTableSession>;
 
-LLB_REGISTER_OPERATION(llb::HashTableRegistry::instance(),
-    HashOp{1, "Show buckets", [](llb::HashTableSession& session) { session.showBuckets(); }})
+LLB_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{1, "Show buckets", [](pds::HashTableSession& session) { session.showBuckets(); }})
 
-LLB_REGISTER_OPERATION(llb::HashTableRegistry::instance(),
-    HashOp{2, "Show load factor", [](llb::HashTableSession& session) { session.showLoadFactor(); }})
+LLB_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{2, "Show load factor", [](pds::HashTableSession& session) { session.showLoadFactor(); }})
 
-LLB_REGISTER_OPERATION(llb::HashTableRegistry::instance(),
-    HashOp{3, "Insert or update an entry", [](llb::HashTableSession& session) { session.insertFromUser(); }})
+LLB_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{3, "Insert or update an entry", [](pds::HashTableSession& session) { session.insertFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::HashTableRegistry::instance(),
-    HashOp{4, "Find by key", [](llb::HashTableSession& session) { session.findFromUser(); }})
+LLB_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{4, "Find by key", [](pds::HashTableSession& session) { session.findFromUser(); }})
 
-LLB_REGISTER_OPERATION(llb::HashTableRegistry::instance(),
-    HashOp{5, "Remove by key", [](llb::HashTableSession& session) { session.eraseFromUser(); }})
+LLB_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{5, "Remove by key", [](pds::HashTableSession& session) { session.eraseFromUser(); }})

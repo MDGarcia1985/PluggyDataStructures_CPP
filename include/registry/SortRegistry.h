@@ -12,8 +12,8 @@
 #include "registry/OperationRegistry.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     class TargetProgram;
 
@@ -55,6 +55,6 @@ namespace llb
     namespace                                                                          \
     {                                                                                  \
         const bool LLB_DETAIL_CONCAT(llb_registered_sort_, __LINE__) =                 \
-            ::llb::SortRegistry::instance().registerCommand(                           \
-                ::llb::SortCommand{0, LABEL, FUNCTION});                               \
+            ::pds::SortRegistry::instance().registerCommand(                           \
+                ::pds::SortCommand{0, LABEL, FUNCTION});                               \
     }

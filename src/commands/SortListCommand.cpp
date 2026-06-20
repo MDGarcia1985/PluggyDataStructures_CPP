@@ -12,7 +12,7 @@
 #include "ui/SortTypeMenu.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -29,4 +29,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(7, "Sort list", llb::sortListCommand)
+LLB_REGISTER_COMMAND(7, "Sort list", pds::sortListCommand)

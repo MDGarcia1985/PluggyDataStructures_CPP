@@ -11,7 +11,7 @@
 
 #include "core/TargetList.h"
 
-namespace llb
+namespace pds
 {
     class TargetQueue
     {

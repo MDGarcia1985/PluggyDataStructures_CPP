@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(2, "Go forward and display the current target", llb::moveForwardCommand)
+LLB_REGISTER_COMMAND(2, "Go forward and display the current target", pds::moveForwardCommand)

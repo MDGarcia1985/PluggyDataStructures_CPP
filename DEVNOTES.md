@@ -802,7 +802,7 @@ Insertion Sort
 Future algorithms can register with:
 
 ```cpp
-LLB_REGISTER_SORT("Algorithm Name", llb::algorithmCommand)
+LLB_REGISTER_SORT("Algorithm Name", pds::algorithmCommand)
 ```
 
 No Sort Type Menu rewrite is required.

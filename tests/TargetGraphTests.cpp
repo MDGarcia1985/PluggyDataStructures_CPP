@@ -25,10 +25,10 @@ namespace
      * Workflow: Scan Targets, append separators after the first, and append each key.
      * Data Handoff: Converts a Target vector into one comparable string.
      */
-    std::string keysOf(const std::vector<llb::Target>& targets)
+    std::string keysOf(const std::vector<pds::Target>& targets)
     {
         std::string joined;
-        for (const llb::Target& target : targets)
+        for (const pds::Target& target : targets)
         {
             if (!joined.empty())
             {
@@ -45,12 +45,12 @@ namespace
      * Workflow: Add fixture nodes, connect them by key, and return the graph.
      * Data Handoff: Produces an independently owned TargetGraph for each caller.
      */
-    llb::TargetGraph buildSampleGraph()
+    pds::TargetGraph buildSampleGraph()
     {
-        llb::TargetGraph graph;
+        pds::TargetGraph graph;
         for (const char* key : {"A", "B", "C", "D", "E"})
         {
-            graph.addNode(llb::Target(key, ""));
+            graph.addNode(pds::Target(key, ""));
         }
         graph.addEdgeByKey("A", "B", 1.0, false);
         graph.addEdgeByKey("A", "C", 1.0, false);
@@ -69,7 +69,7 @@ namespace
  */
 LLB_TEST(testGraphNodesAndEdges)
 {
-    llb::TargetGraph graph = buildSampleGraph();
+    pds::TargetGraph graph = buildSampleGraph();
 
     expectEqual(graph.nodeCount(), 5, "Graph stores all added nodes.");
 
@@ -93,14 +93,14 @@ LLB_TEST(testGraphNodesAndEdges)
  */
 LLB_TEST(testGraphTraversals)
 {
-    llb::TargetGraph graph = buildSampleGraph();
+    pds::TargetGraph graph = buildSampleGraph();
 
     std::size_t start = 0;
     graph.findId("A", start);
 
     expectEqual(keysOf(graph.breadthFirst(start)), "A,B,C,D,E", "BFS visits nodes in breadth-first order.");
 
-    const std::vector<llb::Target> dfsOrder = graph.depthFirst(start);
+    const std::vector<pds::Target> dfsOrder = graph.depthFirst(start);
     expectEqual(dfsOrder.size(), 5, "DFS visits every reachable node once.");
     expectEqual(dfsOrder.front().fieldOne(), "A", "DFS starts at the requested node.");
 }
@@ -113,10 +113,10 @@ LLB_TEST(testGraphTraversals)
  */
 LLB_TEST(testGraphHandlesCycles)
 {
-    llb::TargetGraph graph;
-    graph.addNode(llb::Target("A", ""));
-    graph.addNode(llb::Target("B", ""));
-    graph.addNode(llb::Target("C", ""));
+    pds::TargetGraph graph;
+    graph.addNode(pds::Target("A", ""));
+    graph.addNode(pds::Target("B", ""));
+    graph.addNode(pds::Target("C", ""));
     graph.addEdgeByKey("A", "B", 1.0, false);
     graph.addEdgeByKey("B", "C", 1.0, false);
     graph.addEdgeByKey("C", "A", 1.0, false);
@@ -136,15 +136,15 @@ LLB_TEST(testGraphHandlesCycles)
  */
 LLB_TEST(testGraphSessionAndRegistry)
 {
-    std::vector<llb::Target> nodes;
-    nodes.push_back(llb::Target("A", ""));
-    nodes.push_back(llb::Target("B", ""));
+    std::vector<pds::Target> nodes;
+    nodes.push_back(pds::Target("A", ""));
+    nodes.push_back(pds::Target("B", ""));
 
-    std::vector<llb::EdgeRecord> edges;
-    edges.push_back(llb::EdgeRecord{"A", "B", 1.0, false});
-    edges.push_back(llb::EdgeRecord{"A", "Missing", 1.0, false});
+    std::vector<pds::EdgeRecord> edges;
+    edges.push_back(pds::EdgeRecord{"A", "B", 1.0, false});
+    edges.push_back(pds::EdgeRecord{"A", "Missing", 1.0, false});
 
-    llb::GraphSession session(nodes, edges);
+    pds::GraphSession session(nodes, edges);
     expectEqual(session.graph().nodeCount(), 2, "Graph session loads all nodes.");
     expectEqual(session.unresolvedEdgeCount(), 1,
         "Graph session counts edge records whose endpoint keys cannot be resolved.");
@@ -153,7 +153,7 @@ LLB_TEST(testGraphSessionAndRegistry)
     session.graph().findId("A", aId);
     expectEqual(session.graph().neighbors(aId).size(), 1, "Graph session applies loaded edges.");
 
-    const auto operations = llb::GraphRegistry::instance().operations();
+    const auto operations = pds::GraphRegistry::instance().operations();
     expect(operations.size() >= 2, "Graph registry holds registered operations.");
     expect(operations.back().isExit, "Graph registry keeps Exit last.");
 }

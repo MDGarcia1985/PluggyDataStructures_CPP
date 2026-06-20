@@ -12,8 +12,8 @@
 #include "registry/OperationRegistry.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     class TargetProgram;
 
@@ -55,14 +55,14 @@ namespace llb
     namespace                                                                          \
     {                                                                                  \
         const bool LLB_DETAIL_CONCAT(llb_registered_command_, __LINE__) =              \
-            ::llb::CommandRegistry::instance().registerCommand(                        \
-                ::llb::CommandPlugin{ID, LABEL, FUNCTION});                            \
+            ::pds::CommandRegistry::instance().registerCommand(                        \
+                ::pds::CommandPlugin{ID, LABEL, FUNCTION});                            \
     }
 
 #define LLB_REGISTER_EXIT_COMMAND(ID, LABEL, FUNCTION)                                 \
     namespace                                                                          \
     {                                                                                  \
         const bool LLB_DETAIL_CONCAT(llb_registered_exit_command_, __LINE__) =         \
-            ::llb::CommandRegistry::instance().registerCommand(                        \
-                ::llb::CommandPlugin{ID, LABEL, FUNCTION, true});                      \
+            ::pds::CommandRegistry::instance().registerCommand(                        \
+                ::pds::CommandPlugin{ID, LABEL, FUNCTION, true});                      \
     }

@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(5, "Delete a target from the list", llb::deleteTargetCommand)
+LLB_REGISTER_COMMAND(5, "Delete a target from the list", pds::deleteTargetCommand)

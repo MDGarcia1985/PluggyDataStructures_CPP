@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(4, "Add another target to the list", llb::addTargetCommand)
+LLB_REGISTER_COMMAND(4, "Add another target to the list", pds::addTargetCommand)

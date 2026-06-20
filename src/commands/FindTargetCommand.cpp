@@ -11,7 +11,7 @@
 #include "registry/CommandRegistry.h"
 
 
-namespace llb
+namespace pds
 {
     namespace
     {
@@ -28,4 +28,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_COMMAND(6, "Find a target in the list", llb::findTargetCommand)
+LLB_REGISTER_COMMAND(6, "Find a target in the list", pds::findTargetCommand)

@@ -10,8 +10,8 @@
 #include "registry/SortRegistry.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     /*
      * Purpose: Create the sort registry with its built-in Exit entry.

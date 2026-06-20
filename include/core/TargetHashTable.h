@@ -14,8 +14,8 @@
 #include "core/TargetList.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     struct HashBucketView
     {

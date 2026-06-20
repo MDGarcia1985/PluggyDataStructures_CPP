@@ -12,8 +12,8 @@
 #include "core/TargetProgram.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     using SortFunction = void (*)(std::vector<Target>&);
 

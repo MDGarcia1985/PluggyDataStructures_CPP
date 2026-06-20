@@ -11,8 +11,8 @@
 #include "sorting/SortSupport.h"
 
 
-// named container llb = linked list browser
-namespace llb
+// named container pds = Pluggy Data Structures
+namespace pds
 {
     namespace
     {
@@ -56,4 +56,4 @@ namespace llb
     }
 }
 
-LLB_REGISTER_SORT("Selection Sort", llb::selectionSortCommand)
+LLB_REGISTER_SORT("Selection Sort", pds::selectionSortCommand)
