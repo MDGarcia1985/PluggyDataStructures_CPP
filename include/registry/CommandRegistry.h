@@ -51,18 +51,18 @@ namespace pds
     };
 }
 
-#define LLB_REGISTER_COMMAND(ID, LABEL, FUNCTION)                                      \
+#define PDS_REGISTER_COMMAND(ID, LABEL, FUNCTION)                                      \
     namespace                                                                          \
     {                                                                                  \
-        const bool LLB_DETAIL_CONCAT(llb_registered_command_, __LINE__) =              \
+        const bool PDS_DETAIL_CONCAT(pds_registered_command_, __LINE__) =              \
             ::pds::CommandRegistry::instance().registerCommand(                        \
                 ::pds::CommandPlugin{ID, LABEL, FUNCTION});                            \
     }
 
-#define LLB_REGISTER_EXIT_COMMAND(ID, LABEL, FUNCTION)                                 \
+#define PDS_REGISTER_EXIT_COMMAND(ID, LABEL, FUNCTION)                                 \
     namespace                                                                          \
     {                                                                                  \
-        const bool LLB_DETAIL_CONCAT(llb_registered_exit_command_, __LINE__) =         \
+        const bool PDS_DETAIL_CONCAT(pds_registered_exit_command_, __LINE__) =         \
             ::pds::CommandRegistry::instance().registerCommand(                        \
                 ::pds::CommandPlugin{ID, LABEL, FUNCTION, true});                      \
     }

@@ -21,7 +21,7 @@ int main()
     int passed = 0;
     int failed = 0;
 
-    for (const llbtest::TestCase& testCase : llbtest::TestRegistry::instance().cases())
+    for (const pdstest::TestCase& testCase : pdstest::TestRegistry::instance().cases())
     {
         try
         {
@@ -38,7 +38,7 @@ int main()
     std::cout << '\n'
         << passed << " test case(s) passed, "
         << failed << " failed, "
-        << llbtest::assertionCount() << " assertion(s) checked.\n";
+        << pdstest::assertionCount() << " assertion(s) checked.\n";
 
     return failed == 0 ? 0 : 1;
 }

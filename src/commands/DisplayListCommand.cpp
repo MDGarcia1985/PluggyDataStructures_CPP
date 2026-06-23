@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(1, "Display the list", pds::displayListCommand)
+PDS_REGISTER_COMMAND(1, "Display the list", pds::displayListCommand)

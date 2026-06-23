@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(4, "Add another target to the list", pds::addTargetCommand)
+PDS_REGISTER_COMMAND(4, "Add another target to the list", pds::addTargetCommand)

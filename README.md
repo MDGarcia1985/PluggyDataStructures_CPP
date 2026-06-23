@@ -1,6 +1,6 @@
-# LinkedListBrowser
+# PluggyDataStructure
 
-LinkedListBrowser is a C++17 learning project that loads TXT and CSV datasets into a family of classic data structures: a doubly linked list, stack, queue, binary search tree, integer-id graph, and separate-chaining hash table. Its UI, registries, sessions, operations, sorting support, file loading, and core data structures are separated so new structures and plugins can be added by reusing one generic registry plus menu-controller spine.
+PluggyDataStructure is a C++17 learning project that loads TXT and CSV datasets into a family of classic data structures: a doubly linked list, stack, queue, binary search tree, integer-id graph, and separate-chaining hash table. Its UI, registries, sessions, operations, sorting support, file loading, and core data structures are separated so new structures and plugins can be added by reusing one generic registry plus menu-controller spine.
 
 ## Build And Run
 
@@ -14,7 +14,7 @@ For single-configuration generators such as Makefiles or Ninja:
 cmake -S . -B build
 cmake --build build
 ctest --test-dir build --output-on-failure
-./build/LinkedListBrowser
+./build/PluggyDataStructure
 ```
 
 With the default Visual Studio generator on Windows, specify the configuration and use its configuration subdirectory:
@@ -23,7 +23,7 @@ With the default Visual Studio generator on Windows, specify the configuration a
 cmake -S . -B build
 cmake --build build --config Debug
 ctest --test-dir build -C Debug --output-on-failure
-.\build\Debug\LinkedListBrowser.exe
+.\build\Debug\PluggyDataStructure.exe
 ```
 
 Operation, command, and sort modules register themselves through global initializers. The build compiles them into an OBJECT library that is linked directly into both executables, so the linker never drops those object files.
@@ -36,8 +36,8 @@ From the project root:
 $sources = Get-ChildItem -Path src -Recurse -Filter *.cpp |
   ForEach-Object { $_.FullName }
 
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp $sources -o LinkedListBrowser.exe
-.\LinkedListBrowser.exe
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp $sources -o PluggyDataStructure.exe
+.\PluggyDataStructure.exe
 ```
 
 Build and run tests:
@@ -59,8 +59,8 @@ From Git Bash, MSYS2 Bash, Linux, or macOS:
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp \
   $(find src -name '*.cpp') \
-  -o LinkedListBrowser
-./LinkedListBrowser
+  -o PluggyDataStructure
+./PluggyDataStructure
 
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude \
   $(find tests -name '*.cpp') $(find src -name '*.cpp') \
@@ -157,22 +157,22 @@ Command and structure operations require positive, unique IDs. ID `0` is reserve
 Linked-list commands are independent source files in `src/commands/`, each registering with `CommandRegistry`:
 
 ```cpp
-LLB_REGISTER_COMMAND(9, "New command", pds::newCommand)
+PDS_REGISTER_COMMAND(9, "New command", pds::newCommand)
 ```
 
-Exit commands use `LLB_REGISTER_EXIT_COMMAND`. `CommandRegistry` orders regular commands by ID and always moves Exit to the end.
+Exit commands use `PDS_REGISTER_EXIT_COMMAND`. `CommandRegistry` orders regular commands by ID and always moves Exit to the end.
 
 Sorting algorithms register with `SortRegistry`:
 
 ```cpp
-LLB_REGISTER_SORT("Algorithm Name", pds::algorithmCommand)
+PDS_REGISTER_SORT("Algorithm Name", pds::algorithmCommand)
 ```
 
 Operations for the other structures live in `src/operations/` and register with their structure registry through the generic macro:
 
 ```cpp
 using TreeOp = pds::Operation<pds::TreeSession>;
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{9, "New tree operation", [](pds::TreeSession& session) { /* ... */ }})
 ```
 
@@ -220,7 +220,7 @@ tests/
 
 ## Tests
 
-Tests self-register with `LLB_TEST(name)` into a shared `TestRegistry` (mirroring the application's plugin spine). `TestMain.cpp` runs every registered case, prints a pass/fail/assertion summary, and returns a nonzero exit code on failure for CI.
+Tests self-register with `PDS_TEST(name)` into a shared `TestRegistry` (mirroring the application's plugin spine). `TestMain.cpp` runs every registered case, prints a pass/fail/assertion summary, and returns a nonzero exit code on failure for CI.
 
 ## Extension Points
 

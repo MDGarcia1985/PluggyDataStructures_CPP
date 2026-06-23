@@ -24,7 +24,7 @@
 #include <filesystem>
 
 
-using namespace llbtest;
+using namespace pdstest;
 
 /*
  * Purpose: Verify Target field storage, mutation, formatting, and matching.
@@ -32,7 +32,7 @@ using namespace llbtest;
  * Workflow: Construct a Target, inspect it, search it, mutate it, and inspect it again.
  * Data Handoff: Sends field and search text through Target and reads resulting values.
  */
-LLB_TEST(testTargetModel)
+PDS_TEST(testTargetModel)
 {
     pds::Target target("OpenAI", "https://www.openai.com");
 
@@ -56,7 +56,7 @@ LLB_TEST(testTargetModel)
  * Workflow: Populate a list, navigate and mutate it, then copy and move instances.
  * Data Handoff: Sends Targets into list nodes and reads pointers, snapshots, and metrics.
  */
-LLB_TEST(testTargetListDataStructure)
+PDS_TEST(testTargetListDataStructure)
 {
     pds::TargetList targets;
 
@@ -127,7 +127,7 @@ LLB_TEST(testTargetListDataStructure)
  * Workflow: Remove alternating endpoints and assert size, values, and empty behavior.
  * Data Handoff: Mutates list-owned nodes and reads updated endpoint pointers.
  */
-LLB_TEST(testListEndpointRemoval)
+PDS_TEST(testListEndpointRemoval)
 {
     pds::TargetList targets;
     targets.addBack(pds::Target("One", "1"));
@@ -156,7 +156,7 @@ LLB_TEST(testListEndpointRemoval)
  * Workflow: Add two Targets, peek, remove both, and assert ordering and emptiness.
  * Data Handoff: Sends Targets through adapter APIs and reads returned values and sizes.
  */
-LLB_TEST(testStackAndQueue)
+PDS_TEST(testStackAndQueue)
 {
     pds::TargetStack stack;
     stack.push(pds::Target("First", "1"));
@@ -185,7 +185,7 @@ LLB_TEST(testStackAndQueue)
  * Workflow: Write fixtures, load and inspect Targets, check discovery, then remove fixtures.
  * Data Handoff: Moves fixture text through FileLoader into TargetList snapshots.
  */
-LLB_TEST(testFileLoadingLayer)
+PDS_TEST(testFileLoadingLayer)
 {
     const std::string path = "tests/tmp_targets_test.txt";
 
@@ -247,7 +247,7 @@ LLB_TEST(testFileLoadingLayer)
  * Workflow: Open the stack, display it, return, exit, and inspect displayed records.
  * Data Handoff: Feeds simulated choices into StructureMenu and captures console text.
  */
-LLB_TEST(testStructureMenuUsesFallbackData)
+PDS_TEST(testStructureMenuUsesFallbackData)
 {
     ScopedCinInput input(
         "2\n"  // Stack
@@ -270,7 +270,7 @@ LLB_TEST(testStructureMenuUsesFallbackData)
  * Workflow: Write files, invoke edge APIs, assert results, and remove fixtures.
  * Data Handoff: Moves edge-list text into EdgeLoadResult records for inspection.
  */
-LLB_TEST(testEdgeFileLoadingLayer)
+PDS_TEST(testEdgeFileLoadingLayer)
 {
     const std::string nodePath = "tests/tmp_graph_nodes.csv";
     const std::string edgePath = "tests/tmp_graph_nodes.edges";
@@ -329,7 +329,7 @@ LLB_TEST(testEdgeFileLoadingLayer)
  * Workflow: Open the graph menu, return, exit, and inspect captured diagnostics.
  * Data Handoff: Feeds files and choices into StructureMenu and captures its message text.
  */
-LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
+PDS_TEST(testStructureMenuReportsInvalidEdgeFile)
 {
     const std::string nodePath = "tests/tmp_invalid_menu_graph.csv";
     const std::string edgePath = "tests/tmp_invalid_menu_graph.edges";
@@ -357,7 +357,7 @@ LLB_TEST(testStructureMenuReportsInvalidEdgeFile)
  * Workflow: Invoke helpers with representative values and assert visible fragments.
  * Data Handoff: Sends Targets into Display and captures rendered console text.
  */
-LLB_TEST(testDisplayLayer)
+PDS_TEST(testDisplayLayer)
 {
     {
         ScopedCoutCapture output;
@@ -406,7 +406,7 @@ LLB_TEST(testDisplayLayer)
  * Workflow: Register commands, inspect ordering, drive menus, and validate sort metadata.
  * Data Handoff: Routes callbacks and simulated input through registries and menu APIs.
  */
-LLB_TEST(testMenuAndCommandLayer)
+PDS_TEST(testMenuAndCommandLayer)
 {
     bool commandRan = false;
     pds::CommandPlugin command{98, "Test command", [&commandRan](pds::TargetProgram&)
@@ -490,7 +490,7 @@ LLB_TEST(testMenuAndCommandLayer)
  * Workflow: Load data, perform each user workflow, assert state and messages, then clean up.
  * Data Handoff: Moves fixture and scripted user data through TargetProgram into TargetList.
  */
-LLB_TEST(testControllerLayer)
+PDS_TEST(testControllerLayer)
 {
     const std::string path = "tests/tmp_program_data.txt";
     writeFile(path, "Alpha|https://alpha.test\nBeta|https://beta.test\nGamma|https://gamma.test\n");

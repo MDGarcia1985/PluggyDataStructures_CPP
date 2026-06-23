@@ -56,4 +56,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_SORT("Selection Sort", pds::selectionSortCommand)
+PDS_REGISTER_SORT("Selection Sort", pds::selectionSortCommand)

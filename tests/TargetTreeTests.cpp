@@ -14,7 +14,7 @@
 #include "session/TreeSession.h"
 
 
-using namespace llbtest;
+using namespace pdstest;
 
 namespace
 {
@@ -61,7 +61,7 @@ namespace
  * Workflow: Insert records, traverse the tree, and compare the resulting key order.
  * Data Handoff: Sends Targets into the tree and reads ordered traversal snapshots.
  */
-LLB_TEST(testTreeInsertionAndOrdering)
+PDS_TEST(testTreeInsertionAndOrdering)
 {
     pds::TargetTree tree = buildSampleTree();
 
@@ -81,7 +81,7 @@ LLB_TEST(testTreeInsertionAndOrdering)
  * Workflow: Insert the original, attempt the duplicate, and inspect size and value retention.
  * Data Handoff: Sends competing Targets into the tree and reads the preserved entry.
  */
-LLB_TEST(testTreeDuplicateRejection)
+PDS_TEST(testTreeDuplicateRejection)
 {
     pds::TargetTree tree;
     expect(tree.insert(pds::Target("Alpha", "1")), "First insertion succeeds.");
@@ -96,7 +96,7 @@ LLB_TEST(testTreeDuplicateRejection)
  * Workflow: Populate the tree and issue successful and unsuccessful searches.
  * Data Handoff: Sends key text into search and reads returned Target pointers.
  */
-LLB_TEST(testTreeSearch)
+PDS_TEST(testTreeSearch)
 {
     pds::TargetTree tree = buildSampleTree();
 
@@ -115,7 +115,7 @@ LLB_TEST(testTreeSearch)
  * Workflow: Build a tree, remove keys, and inspect the resulting traversal.
  * Data Handoff: Sends keys into erase and reads updated tree snapshots.
  */
-LLB_TEST(testTreeRemoval)
+PDS_TEST(testTreeRemoval)
 {
     pds::TargetTree tree = buildSampleTree();
 
@@ -135,7 +135,7 @@ LLB_TEST(testTreeRemoval)
  * Workflow: Populate a source, copy it, alter one instance, and compare state.
  * Data Handoff: Copies tree-owned Targets between instances without sharing nodes.
  */
-LLB_TEST(testTreeCopySemantics)
+PDS_TEST(testTreeCopySemantics)
 {
     pds::TargetTree original = buildSampleTree();
 
@@ -161,7 +161,7 @@ LLB_TEST(testTreeCopySemantics)
  * Workflow: Construct a session, inspect its tree, and validate registered menu items.
  * Data Handoff: Routes loaded Targets into the session and reads tree and registry state.
  */
-LLB_TEST(testTreeSessionAndRegistry)
+PDS_TEST(testTreeSessionAndRegistry)
 {
     std::vector<pds::Target> items;
     items.push_back(pds::Target("Mango", "fruit"));

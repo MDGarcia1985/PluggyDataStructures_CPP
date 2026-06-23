@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(3, "Go backward and display the current target", pds::moveBackwardCommand)
+PDS_REGISTER_COMMAND(3, "Go backward and display the current target", pds::moveBackwardCommand)

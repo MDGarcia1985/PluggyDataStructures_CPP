@@ -14,7 +14,7 @@
 #include "session/HashTableSession.h"
 
 
-using namespace llbtest;
+using namespace pdstest;
 
 /*
  * Purpose: Verify insertion, lookup, and removal in separate-chaining storage.
@@ -22,7 +22,7 @@ using namespace llbtest;
  * Workflow: Insert records, find keys case-insensitively, erase one, and assert state changes.
  * Data Handoff: Sends Targets into the table and reads lookup results and size metrics.
  */
-LLB_TEST(testHashInsertFindErase)
+PDS_TEST(testHashInsertFindErase)
 {
     pds::TargetHashTable table;
     table.insert(pds::Target("Alice", "Engineer"));
@@ -48,7 +48,7 @@ LLB_TEST(testHashInsertFindErase)
  * Workflow: Insert both records, inspect size, and retrieve the final stored value.
  * Data Handoff: Passes replacement data through insert and reads it back through find.
  */
-LLB_TEST(testHashUpdateExistingKey)
+PDS_TEST(testHashUpdateExistingKey)
 {
     pds::TargetHashTable table;
     table.insert(pds::Target("Key", "first"));
@@ -67,7 +67,7 @@ LLB_TEST(testHashUpdateExistingKey)
  * Workflow: Fill the table, assert growth and load factor, then find a retained entry.
  * Data Handoff: Sends generated Targets through rehashing and reads one result afterward.
  */
-LLB_TEST(testHashResizing)
+PDS_TEST(testHashResizing)
 {
     pds::TargetHashTable table(8);
     expectEqual(table.bucketCount(), 8, "Hash table starts with the requested bucket count.");
@@ -92,7 +92,7 @@ LLB_TEST(testHashResizing)
  * Workflow: Construct a session, inspect its table, then validate registry ordering.
  * Data Handoff: Routes a Target snapshot into the session and reads table and registry state.
  */
-LLB_TEST(testHashSessionAndRegistry)
+PDS_TEST(testHashSessionAndRegistry)
 {
     std::vector<pds::Target> items;
     items.push_back(pds::Target("Alice", "Engineer"));

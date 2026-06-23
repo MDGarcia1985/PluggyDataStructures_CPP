@@ -52,4 +52,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_SORT("Insertion Sort", pds::insertionSortCommand)
+PDS_REGISTER_SORT("Insertion Sort", pds::insertionSortCommand)

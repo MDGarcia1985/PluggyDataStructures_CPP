@@ -13,26 +13,26 @@
 
 using TreeOp = pds::Operation<pds::TreeSession>;
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{1, "Show in-order (sorted)", [](pds::TreeSession& session) { session.showInOrder(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{2, "Show pre-order", [](pds::TreeSession& session) { session.showPreOrder(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{3, "Show post-order", [](pds::TreeSession& session) { session.showPostOrder(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{4, "Show level-order", [](pds::TreeSession& session) { session.showLevelOrder(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{5, "Insert a target", [](pds::TreeSession& session) { session.insertFromUser(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{6, "Find by key", [](pds::TreeSession& session) { session.findFromUser(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{7, "Remove by key", [](pds::TreeSession& session) { session.removeFromUser(); }})
 
-LLB_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{8, "Show height and node count", [](pds::TreeSession& session) { session.showHeight(); }})

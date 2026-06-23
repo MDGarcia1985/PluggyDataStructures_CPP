@@ -30,7 +30,7 @@
 // named container pds = Pluggy Data Structures
 namespace pds
 {
-    inline constexpr const char* APP_NAME = "LinkedListBrowser";
+    inline constexpr const char* APP_NAME = "Pluggy Data Structure";
     inline constexpr const char* DEFAULT_DATA_FILE = "data/websites.txt";
     inline constexpr const char* DATA_DIRECTORY = "data/";
 }

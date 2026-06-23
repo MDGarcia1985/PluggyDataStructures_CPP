@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(5, "Delete a target from the list", pds::deleteTargetCommand)
+PDS_REGISTER_COMMAND(5, "Delete a target from the list", pds::deleteTargetCommand)

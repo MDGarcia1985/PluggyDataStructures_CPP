@@ -51,10 +51,10 @@ namespace pds
     };
 }
 
-#define LLB_REGISTER_SORT(LABEL, FUNCTION)                                             \
+#define PDS_REGISTER_SORT(LABEL, FUNCTION)                                             \
     namespace                                                                          \
     {                                                                                  \
-        const bool LLB_DETAIL_CONCAT(llb_registered_sort_, __LINE__) =                 \
+        const bool PDS_DETAIL_CONCAT(pds_registered_sort_, __LINE__) =                 \
             ::pds::SortRegistry::instance().registerCommand(                           \
                 ::pds::SortCommand{0, LABEL, FUNCTION});                               \
     }

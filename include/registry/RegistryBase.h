@@ -47,5 +47,5 @@ namespace pds
     };
 }
 
-#define LLB_DETAIL_CONCAT_IMPL(first, second) first##second
-#define LLB_DETAIL_CONCAT(first, second) LLB_DETAIL_CONCAT_IMPL(first, second)
+#define PDS_DETAIL_CONCAT_IMPL(first, second) first##second
+#define PDS_DETAIL_CONCAT(first, second) PDS_DETAIL_CONCAT_IMPL(first, second)

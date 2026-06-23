@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(6, "Find a target in the list", pds::findTargetCommand)
+PDS_REGISTER_COMMAND(6, "Find a target in the list", pds::findTargetCommand)

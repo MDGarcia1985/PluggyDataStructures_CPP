@@ -129,9 +129,9 @@ namespace pds
     };
 }
 
-#define LLB_REGISTER_OPERATION(REGISTRY, ...)                                          \
+#define PDS_REGISTER_OPERATION(REGISTRY, ...)                                          \
     namespace                                                                          \
     {                                                                                  \
-        const bool LLB_DETAIL_CONCAT(llb_registered_operation_, __LINE__) =            \
+        const bool PDS_DETAIL_CONCAT(pds_registered_operation_, __LINE__) =            \
             (REGISTRY).registerOperation(__VA_ARGS__);                                 \
     }

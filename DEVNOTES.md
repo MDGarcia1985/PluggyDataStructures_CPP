@@ -1527,3 +1527,68 @@ C++17 GCC 15.2 build with -Wall -Wextra -pedantic (clean)
 tracked C++ file-header audit passed
 git diff --check passed
 ```
+
+## Completed Milestone: Pluggy Data Structure Rename
+
+Date completed:
+
+```text
+2026-06-22
+```
+
+This milestone aligns the project's product-name artifacts with the `pds` (Pluggy Data Structure) namespace adopted during the generic-structures work. The namespaces were renamed previously; this milestone retires the remaining legacy `LLB` / `LinkedListBrowser` (Linked List Browser) identifiers everywhere except this historical record.
+
+### Decision: rename the product, keep the data structure
+
+The legacy name conflated two distinct concepts:
+
+```text
+the product             -> LinkedListBrowser / LLB prefix (the old project identity)
+a contained structure   -> the doubly linked list (TargetList), still one of seven structures
+```
+
+Only the product identity was renamed. References to the linked list as an actual data structure (menu labels, data-flow descriptions, `TargetList` code comments, and sample data) were deliberately preserved, because the doubly linked list remains a first-class structure alongside stack, queue, tree, graph, hash table, and map.
+
+### Completed: Naming map
+
+```text
+LLB_ macro prefix                          -> PDS_
+LLBTEST_ helper prefix                      -> PDSTEST_
+llb_ generated-identifier prefix            -> pds_
+llbtest test namespace                      -> pdstest
+LinkedListBrowser (CMake project + binary)  -> PluggyDataStructure
+LinkedListTests (test executable)           -> PluggyDataStructureTests
+LLB_SOURCES / LLB_TEST_SOURCES / llb_objects -> PDS_SOURCES / PDS_TEST_SOURCES / pds_objects
+APP_NAME value "LinkedListBrowser"          -> "Pluggy Data Structure"
+```
+
+### Completed: Registration and test macros
+
+The plugin spine's registration macros and the self-registering test harness were renamed at their definitions and every call site:
+
+```text
+LLB_REGISTER_COMMAND / LLB_REGISTER_EXIT_COMMAND -> PDS_REGISTER_COMMAND / PDS_REGISTER_EXIT_COMMAND
+LLB_REGISTER_SORT                                -> PDS_REGISTER_SORT
+LLB_REGISTER_OPERATION                           -> PDS_REGISTER_OPERATION
+LLB_DETAIL_CONCAT(_IMPL)                          -> PDS_DETAIL_CONCAT(_IMPL)
+LLB_TEST / LLBTEST_CONCAT(_IMPL)                  -> PDS_TEST / PDSTEST_CONCAT(_IMPL)
+```
+
+The internal anonymous-namespace registration flags (`llb_registered_command_`, `llb_registered_sort_`, `llb_registered_operation_`, `llb_test_registered_`) were renamed to their `pds_` equivalents. Behavior is unchanged: each compiled module still registers itself through a global initializer.
+
+### Completed: Build and documentation
+
+`CMakeLists.txt` now defines the `PluggyDataStructure` and `PluggyDataStructureTests` targets built from the `pds_objects` OBJECT library. `README.md` and `ARCHITECTURE.md` use the new product name, binary paths, and macro examples while retaining their linked-list data-structure descriptions. `Header.h` reports the application as `Pluggy Data Structure`.
+
+### Completed: Scope boundary
+
+This file is the single intentional exception. It retains the historical `LLB` and `LinkedListBrowser` references so prior milestones read as they were written. A repository-wide search for `LLB`, `LinkedListBrowser`, `LinkedListTests`, `llbtest`, and `llb_` matches only `DEVNOTES.md`.
+
+### Validation completed
+
+```text
+CMake configure succeeded (Visual Studio generator, Windows SDK 10.0.26100)
+Debug PluggyDataStructure and PluggyDataStructureTests builds succeeded
+CTest passed unit_tests
+29 test cases, 240 assertions, all passing
+```

@@ -29,4 +29,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(7, "Sort list", pds::sortListCommand)
+PDS_REGISTER_COMMAND(7, "Sort list", pds::sortListCommand)

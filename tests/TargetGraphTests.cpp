@@ -15,7 +15,7 @@
 #include "session/GraphSession.h"
 
 
-using namespace llbtest;
+using namespace pdstest;
 
 namespace
 {
@@ -67,7 +67,7 @@ namespace
  * Workflow: Add nodes and edges, then assert counts and neighbor metadata.
  * Data Handoff: Sends Targets and edge values into the graph and reads adjacency views.
  */
-LLB_TEST(testGraphNodesAndEdges)
+PDS_TEST(testGraphNodesAndEdges)
 {
     pds::TargetGraph graph = buildSampleGraph();
 
@@ -91,7 +91,7 @@ LLB_TEST(testGraphNodesAndEdges)
  * Workflow: Build connected nodes, run both traversals, and compare snapshots.
  * Data Handoff: Passes a start id into traversal methods and reads Target vectors.
  */
-LLB_TEST(testGraphTraversals)
+PDS_TEST(testGraphTraversals)
 {
     pds::TargetGraph graph = buildSampleGraph();
 
@@ -111,7 +111,7 @@ LLB_TEST(testGraphTraversals)
  * Workflow: Connect nodes cyclically, traverse, and assert the bounded result.
  * Data Handoff: Sends cyclic adjacency into traversal and reads de-duplicated visits.
  */
-LLB_TEST(testGraphHandlesCycles)
+PDS_TEST(testGraphHandlesCycles)
 {
     pds::TargetGraph graph;
     graph.addNode(pds::Target("A", ""));
@@ -134,7 +134,7 @@ LLB_TEST(testGraphHandlesCycles)
  * Workflow: Construct a session, inspect graph state, and validate menu operations.
  * Data Handoff: Routes loaded nodes and edges into the session and reads integration state.
  */
-LLB_TEST(testGraphSessionAndRegistry)
+PDS_TEST(testGraphSessionAndRegistry)
 {
     std::vector<pds::Target> nodes;
     nodes.push_back(pds::Target("A", ""));

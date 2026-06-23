@@ -30,4 +30,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_EXIT_COMMAND(8, "Exit", pds::exitCommand)
+PDS_REGISTER_EXIT_COMMAND(8, "Exit", pds::exitCommand)

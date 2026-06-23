@@ -21,7 +21,7 @@
 
 
 // Lightweight test utilities, modeled on the project's plugin-registration spine.
-namespace llbtest
+namespace pdstest
 {
     /*
      * Purpose: Track how many assertions have run across all test modules.
@@ -234,11 +234,11 @@ namespace llbtest
     };
 }
 
-#define LLBTEST_CONCAT_IMPL(first, second) first##second
-#define LLBTEST_CONCAT(first, second) LLBTEST_CONCAT_IMPL(first, second)
+#define PDSTEST_CONCAT_IMPL(first, second) first##second
+#define PDSTEST_CONCAT(first, second) PDSTEST_CONCAT_IMPL(first, second)
 
-#define LLB_TEST(name)                                                                 \
+#define PDS_TEST(name)                                                                 \
     static void name();                                                                \
-    static const bool LLBTEST_CONCAT(llb_test_registered_, __LINE__) =                 \
-        ::llbtest::TestRegistry::instance().add(#name, name);                          \
+    static const bool PDSTEST_CONCAT(pds_test_registered_, __LINE__) =                 \
+        ::pdstest::TestRegistry::instance().add(#name, name);                          \
     static void name()

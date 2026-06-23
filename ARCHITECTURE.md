@@ -1,6 +1,6 @@
 # Architecture
 
-LinkedListBrowser separates reusable UI behavior, menu navigation, registration, business operations, data loading, and sorting.
+PluggyDataStructure separates reusable UI behavior, menu navigation, registration, business operations, data loading, and sorting.
 
 ## Runtime Flow
 

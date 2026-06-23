@@ -1,6 +1,6 @@
 /*
  * File: main.cpp
- * Description: Defines the executable entry point for LinkedListBrowser.
+ * Description: Defines the executable entry point for PluggyDataStructure.
  * Copyright (c) 2026 Michael Garcia
  * Contact: michael@mandedesign.studio
  * Site: https://mandedesign.studio

@@ -28,4 +28,4 @@ namespace pds
     }
 }
 
-LLB_REGISTER_COMMAND(2, "Go forward and display the current target", pds::moveForwardCommand)
+PDS_REGISTER_COMMAND(2, "Go forward and display the current target", pds::moveForwardCommand)

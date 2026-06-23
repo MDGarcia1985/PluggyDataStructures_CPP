@@ -14,7 +14,7 @@
 #include "session/MapSession.h"
 
 
-using namespace llbtest;
+using namespace pdstest;
 
 /*
  * Purpose: Verify case folding, punctuation splitting, totals, and alphabetical map storage.
@@ -22,7 +22,7 @@ using namespace llbtest;
  * Workflow: Count sample text and assert each aggregate and representative frequency.
  * Data Handoff: Sends text into TargetMap and reads its public analysis results.
  */
-LLB_TEST(testMapCountsNormalizedText)
+PDS_TEST(testMapCountsNormalizedText)
 {
     pds::TargetMap map;
     map.countText("Hello hello world! This world is a hello-world test.");
@@ -43,7 +43,7 @@ LLB_TEST(testMapCountsNormalizedText)
  * Workflow: Count tie-producing text, collect winners, and assert their values and order.
  * Data Handoff: Reads a vector of winning keys produced from the ordered map.
  */
-LLB_TEST(testMapMostFrequentTies)
+PDS_TEST(testMapMostFrequentTies)
 {
     pds::TargetMap map;
     map.countText("beta alpha beta alpha gamma");
@@ -60,7 +60,7 @@ LLB_TEST(testMapMostFrequentTies)
  * Workflow: Seed counts, analyze two Targets, and assert only field-derived words remain.
  * Data Handoff: Sends a Target vector into TargetMap and reads the replacement frequencies.
  */
-LLB_TEST(testMapCountsTargetFields)
+PDS_TEST(testMapCountsTargetFields)
 {
     pds::TargetMap map;
     map.countText("obsolete");
@@ -83,7 +83,7 @@ LLB_TEST(testMapCountsTargetFields)
  * Workflow: Count and clear text, construct a session, then inspect registered operations.
  * Data Handoff: Reads TargetMap state and MapRegistry operation metadata.
  */
-LLB_TEST(testMapClearSessionAndRegistry)
+PDS_TEST(testMapClearSessionAndRegistry)
 {
     pds::TargetMap map;
     map.countText("one two two");
