@@ -1592,3 +1592,117 @@ Debug PluggyDataStructure and PluggyDataStructureTests builds succeeded
 CTest passed unit_tests
 29 test cases, 240 assertions, all passing
 ```
+
+## Completed Milestone: Algorithm Modules, Structure Cleanup, And Documentation Refresh
+
+Date completed:
+
+```text
+2026-06-23
+```
+
+This milestone completes the post-rename cleanup after the structure and algorithm refactor.
+
+### Completed: Structures and algorithms split
+
+The structure classes now live under:
+
+```text
+include/structures/
+src/structures/
+```
+
+Reusable UI-free behavior now lives under:
+
+```text
+include/algorithms/
+src/algorithms/
+```
+
+The algorithm folders are grouped by domain:
+
+```text
+common
+graphs
+hashing
+maps
+sorting
+trees
+```
+
+The old `include/sorting/` and `src/sorting/` directories were removed after `SortSupport` was replaced by pure sorting algorithms plus the `SortOperations.cpp` adapter.
+
+### Completed: Expanded data-structure operations
+
+Graph, hash table, map, and tree sessions gained algorithm-backed operations:
+
+```text
+Graph: path existence, weighted shortest path, node degree, components, cycle reporting
+Hash table: collision metrics and chaining/probing strategy switching
+Map: top/least frequent words, buckets, search, prefix matching, rankings
+Tree: structure analysis through height, leaves, and balance helpers
+```
+
+The hash table is now a facade over separate chaining and linear probing strategies. Strategy switching preserves entries, including updates made under normalized keys.
+
+### Completed: Graph safety and cycle semantics
+
+`TargetGraph::addEdge()` now rejects negative and non-finite weights so Dijkstra-based weighted shortest path is only run on valid graph data.
+
+Graph edges record whether they originated as directed edges. Cycle analysis no longer treats a simple undirected edge pair as a cycle, and the UI uses the "Contains a Directed cycle" label only when the graph actually contains directed edges.
+
+### Completed: Tree invariant cleanup
+
+`TargetTree` no longer exposes its node type or root pointer. Tree traversal, search, and analysis modules now use public tree-owned helpers such as:
+
+```text
+visit(...)
+height()
+leafCount()
+isBalanced()
+minimum()
+maximum()
+pathToKey()
+```
+
+This keeps tree invariants inside the structure while preserving testable algorithm modules.
+
+### Completed: Linear probing metric fix
+
+`LinearProbing::longestCluster()` now treats the slot vector as circular, matching the probing behavior used by insert, lookup, and removal.
+
+### Completed: Repository cleanup
+
+Empty and stale directories were removed:
+
+```text
+include/sorting
+src/sorting
+stale old LinkedListBrowser/LinkedListTests build target directories
+empty generated build placeholders
+```
+
+### Completed: Documentation refresh
+
+`README.md` and `ARCHITECTURE.md` were updated to describe:
+
+```text
+structures/ and algorithms/ ownership
+current project layout
+map as a first-class structure
+graph path and cycle behavior
+hash table strategy switching
+tree visitor/helper boundary
+non-negative weighted graph edges
+current extension guidance
+```
+
+Earlier sections in this file remain historical and may mention retired names or designs. This dated milestone records the current architecture after the June 23 cleanup.
+
+### Validation completed
+
+```text
+Debug PluggyDataStructure build succeeded
+Debug PluggyDataStructureTests build succeeded
+CTest passed unit_tests
+```

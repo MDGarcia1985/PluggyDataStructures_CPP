@@ -9,7 +9,7 @@
 
 #include "TestHarness.h"
 
-#include "core/TargetHashTable.h"
+#include "structures/TargetHashTable.h"
 #include "registry/StructureRegistries.h"
 #include "session/HashTableSession.h"
 
@@ -84,6 +84,42 @@ PDS_TEST(testHashResizing)
     pds::Target found;
     expect(table.find("Key7", found), "Entries remain findable after resizing.");
     expectEqual(found.fieldTwo(), "7", "Resized table preserves stored values.");
+}
+
+PDS_TEST(testHashStrategySwitchPreservesEntries)
+{
+    pds::TargetHashTable table(4);
+    table.insert(pds::Target("Alpha", "1"));
+    table.insert(pds::Target("Beta", "2"));
+    table.insert(pds::Target("Gamma", "3"));
+
+    table.useStrategy(pds::HashStrategy::LinearProbing);
+    expect(table.strategy() == pds::HashStrategy::LinearProbing, "Hash table switches to linear probing.");
+    expectEqual(table.size(), static_cast<std::size_t>(3), "Switching to probing preserves the entry count.");
+
+    pds::Target found;
+    expect(table.find("alpha", found), "Probing strategy finds migrated entries.");
+    expectEqual(found.fieldTwo(), "1", "Migrated probing entry keeps its value.");
+
+    table.insert(pds::Target("Delta", "4"));
+    table.useStrategy(pds::HashStrategy::SeparateChaining);
+    expect(table.strategy() == pds::HashStrategy::SeparateChaining, "Hash table switches back to separate chaining.");
+    expectEqual(table.size(), static_cast<std::size_t>(4), "Switching back preserves all entries.");
+    expect(table.find("Delta", found), "Chaining strategy finds entries added while probing was active.");
+}
+
+PDS_TEST(testHashStrategySwitchKeepsUpdatedValues)
+{
+    pds::TargetHashTable table(4);
+    table.insert(pds::Target("Key", "first"));
+    table.useStrategy(pds::HashStrategy::LinearProbing);
+    table.insert(pds::Target("KEY", "second"));
+    table.useStrategy(pds::HashStrategy::SeparateChaining);
+
+    pds::Target found;
+    expect(table.find("key", found), "Strategy migration preserves updated normalized keys.");
+    expectEqual(found.fieldTwo(), "second", "Strategy migration keeps the latest value for duplicate keys.");
+    expectEqual(table.size(), static_cast<std::size_t>(1), "Strategy migration does not duplicate normalized keys.");
 }
 
 /*

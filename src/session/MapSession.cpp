@@ -8,7 +8,13 @@
  */
 
 #include "session/MapSession.h"
+
+#include "algorithms/maps/FrequencyAnalysis.h"
+#include "algorithms/maps/MapRanking.h"
+#include "algorithms/maps/MapSearch.h"
 #include "ui/Display.h"
+
+#include <limits>
 
 
 // named container pds = Pluggy Data Structures
@@ -130,6 +136,210 @@ namespace pds
             << "Total words: " << map_.totalWords() << '\n'
             << "Unique words: " << map_.uniqueWords() << '\n'
             << "Maximum frequency: " << map_.maxFrequency() << '\n';
+    }
+
+    /*
+     * Purpose: Display the top N most frequent words.
+     * Design: Delegates ranking to FrequencyAnalysis while the session owns prompts and output.
+     * Workflow: Guard empty state, read N, compute topN, and print each word/count pair.
+     * Data Handoff: Reads map_ and writes ranked results to std::cout.
+     */
+    void MapSession::showTopNFromUser() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::cout << "\nHow many top words? ";
+        std::size_t count = 0;
+        std::cin >> count;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (count == 0)
+        {
+            Display::printMessage("Count must be greater than zero.");
+            return;
+        }
+
+        std::cout << "\nTop " << count << " word(s):\n";
+        for (const auto& entry : pds::topN(map_, count))
+        {
+            std::cout << entry.first << ": " << entry.second << '\n';
+        }
+    }
+
+    /*
+     * Purpose: Display the N least frequent words.
+     * Design: Delegates ranking to FrequencyAnalysis while the session owns prompts and output.
+     * Workflow: Guard empty state, read N, compute leastFrequent, and print each pair.
+     * Data Handoff: Reads map_ and writes ranked results to std::cout.
+     */
+    void MapSession::showLeastFrequentFromUser() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::cout << "\nHow many least frequent words? ";
+        std::size_t count = 0;
+        std::cin >> count;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (count == 0)
+        {
+            Display::printMessage("Count must be greater than zero.");
+            return;
+        }
+
+        std::cout << "\nLeast frequent " << count << " word(s):\n";
+        for (const auto& entry : pds::leastFrequent(map_, count))
+        {
+            std::cout << entry.first << ": " << entry.second << '\n';
+        }
+    }
+
+    /*
+     * Purpose: Display words grouped by their shared frequency count.
+     * Design: Delegates bucket construction to FrequencyAnalysis.
+     * Workflow: Guard empty state, build buckets, and print each count with its words.
+     * Data Handoff: Reads map_ and writes grouped analysis to std::cout.
+     */
+    void MapSession::showFrequencyBuckets() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::cout << "\nFrequency buckets:\n";
+        for (const auto& bucket : pds::frequencyBuckets(map_))
+        {
+            std::cout << "Count " << bucket.first << ':';
+            for (const std::string& word : bucket.second)
+            {
+                std::cout << ' ' << word;
+            }
+            std::cout << '\n';
+        }
+    }
+
+    /*
+     * Purpose: Search for one word and display its frequency.
+     * Design: Delegates lookup to MapSearch while the session owns input and output.
+     * Workflow: Prompt for a word, check containsWord, and print the count or not-found message.
+     * Data Handoff: Moves user text into MapSearch and displays the result.
+     */
+    void MapSession::searchWordFromUser() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::string word;
+        std::cout << "\nEnter word to search: ";
+        std::getline(std::cin, word);
+
+        if (word.find_first_not_of(" \t\r\n") == std::string::npos)
+        {
+            Display::printMessage("Search word cannot be blank.");
+            return;
+        }
+
+        if (pds::containsWord(map_, word))
+        {
+            Display::printMessage(word + " appears " + std::to_string(map_.countFor(word)) + " time(s).");
+        }
+        else
+        {
+            Display::printMessage("Word not found.");
+        }
+    }
+
+    /*
+     * Purpose: List every stored word that starts with a user-supplied prefix.
+     * Design: Delegates prefix matching to MapSearch.
+     * Workflow: Prompt for a prefix, collect matches, and print them alphabetically.
+     * Data Handoff: Moves user text into MapSearch and displays matching keys.
+     */
+    void MapSession::showWordsStartingWithFromUser() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::string prefix;
+        std::cout << "\nEnter prefix: ";
+        std::getline(std::cin, prefix);
+
+        if (prefix.find_first_not_of(" \t\r\n") == std::string::npos)
+        {
+            Display::printMessage("Prefix cannot be blank.");
+            return;
+        }
+
+        const std::vector<std::string> matches = pds::wordsStartingWith(map_, prefix);
+        if (matches.empty())
+        {
+            Display::printMessage("No words match that prefix.");
+            return;
+        }
+
+        std::cout << "\nWords starting with \"" << prefix << "\":\n";
+        for (const std::string& word : matches)
+        {
+            std::cout << word << '\n';
+        }
+    }
+
+    /*
+     * Purpose: Display every word sorted by descending frequency.
+     * Design: Delegates ordering to MapRanking.
+     * Workflow: Guard empty state, sort by frequency, and print each pair.
+     * Data Handoff: Reads map_ and writes ranked results to std::cout.
+     */
+    void MapSession::showFrequencyRanking() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::cout << "\nFrequency ranking:\n";
+        for (const auto& entry : pds::sortByFrequency(map_))
+        {
+            std::cout << entry.first << ": " << entry.second << '\n';
+        }
+    }
+
+    /*
+     * Purpose: Display every word in alphabetical order with counts.
+     * Design: Delegates ordering to MapRanking.
+     * Workflow: Guard empty state, copy alphabetical order, and print each pair.
+     * Data Handoff: Reads map_ and writes ranked results to std::cout.
+     */
+    void MapSession::showAlphabeticalRanking() const
+    {
+        if (map_.isEmpty())
+        {
+            Display::printMessage("No word counts are available yet.");
+            return;
+        }
+
+        std::cout << "\nAlphabetical ranking:\n";
+        for (const auto& entry : pds::sortAlphabetically(map_))
+        {
+            std::cout << entry.first << ": " << entry.second << '\n';
+        }
     }
 
     /*

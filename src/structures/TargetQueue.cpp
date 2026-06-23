@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "core/TargetQueue.h"
+#include "structures/TargetQueue.h"
 #include "ui/Display.h"
 
 

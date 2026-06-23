@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "core/TargetMap.h"
+#include "structures/TargetMap.h"
 
 #include <cctype>
 
@@ -209,6 +209,53 @@ namespace pds
     const std::map<std::string, int>& TargetMap::frequencies() const
     {
         return wordCounts_;
+    }
+
+    /*
+     * Purpose: Expose the same frequency map through the algorithm-facing entries alias.
+     * Design: Returns the owned std::map by const reference without copying.
+     * Workflow: Return wordCounts_ directly.
+     * Data Handoff: Gives map algorithms read-only access to stored frequencies.
+     */
+    const std::map<std::string, int>& TargetMap::entries() const
+    {
+        return wordCounts_;
+    }
+
+    /*
+     * Purpose: Report the count for one normalized word key.
+     * Design: Returns zero when the word has not been counted.
+     * Workflow: Look up the normalized token in wordCounts_.
+     * Data Handoff: Reads one frequency value for callers and algorithms.
+     */
+    int TargetMap::countFor(const std::string& word) const
+    {
+        const std::string normalized = normalizeWord(word);
+        const auto iterator = wordCounts_.find(normalized);
+        return iterator == wordCounts_.end() ? 0 : iterator->second;
+    }
+
+    /*
+     * Purpose: Report whether a normalized word exists in the map.
+     * Design: Uses countFor so empty normalization behaves consistently.
+     * Workflow: Check whether the normalized token has a stored count.
+     * Data Handoff: Returns a boolean lookup result for callers and algorithms.
+     */
+    bool TargetMap::contains(const std::string& word) const
+    {
+        const std::string normalized = normalizeWord(word);
+        return !normalized.empty() && wordCounts_.count(normalized) > 0;
+    }
+
+    /*
+     * Purpose: Report the number of distinct normalized words.
+     * Design: Mirrors uniqueWords() through the algorithm-facing size alias.
+     * Workflow: Return wordCounts_.size().
+     * Data Handoff: Gives callers the unique-word count.
+     */
+    std::size_t TargetMap::size() const
+    {
+        return wordCounts_.size();
     }
 
     /*

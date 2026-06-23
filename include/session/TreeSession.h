@@ -10,7 +10,7 @@
 #pragma once
 
 #include "core/Header.h"
-#include "core/TargetTree.h"
+#include "structures/TargetTree.h"
 
 
 // named container pds = Pluggy Data Structures
@@ -32,6 +32,7 @@ namespace pds
         void showPostOrder() const;
         void showLevelOrder() const;
         void showHeight() const;
+        void showStructure() const;
 
         TargetTree& tree();
         const TargetTree& tree() const;

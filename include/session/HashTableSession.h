@@ -10,7 +10,7 @@
 #pragma once
 
 #include "core/Header.h"
-#include "core/TargetHashTable.h"
+#include "structures/TargetHashTable.h"
 
 
 // named container pds = Pluggy Data Structures
@@ -29,6 +29,8 @@ namespace pds
         void eraseFromUser();
         void showBuckets() const;
         void showLoadFactor() const;
+        void switchStrategy();
+        void showCollisionMetrics() const;
 
         TargetHashTable& table();
         const TargetHashTable& table() const;

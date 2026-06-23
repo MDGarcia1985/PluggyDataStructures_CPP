@@ -10,12 +10,12 @@
 #include "TestHarness.h"
 
 #include "core/TargetProgram.h"
-#include "core/TargetQueue.h"
-#include "core/TargetStack.h"
+#include "structures/TargetQueue.h"
+#include "structures/TargetStack.h"
 #include "io/FileLoader.h"
 #include "registry/CommandRegistry.h"
 #include "registry/SortRegistry.h"
-#include "sorting/SortSupport.h"
+#include "algorithms/common/TargetOrdering.h"
 #include "ui/DataSourceMenu.h"
 #include "ui/Display.h"
 #include "ui/Menu.h"
@@ -337,8 +337,8 @@ PDS_TEST(testStructureMenuReportsInvalidEdgeFile)
     writeFile(edgePath, "invalid row\n");
 
     ScopedCinInput input(
-        "5\n"  // Graph
-        "6\n"  // Back to data structure menu
+        "5\n"   // Graph
+        "10\n"  // Back to data structure menu (after the registered graph operations)
         "8\n"); // Exit
     ScopedCoutCapture output;
 

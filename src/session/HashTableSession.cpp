@@ -122,8 +122,8 @@ namespace pds
      */
     void HashTableSession::showBuckets() const
     {
-        std::cout << "\nHash table buckets (" << table_.size() << " entries in "
-            << table_.bucketCount() << " buckets):\n";
+        std::cout << "\n" << table_.strategyName() << " slots (" << table_.size() << " entries in "
+            << table_.bucketCount() << " slots):\n";
 
         for (const HashBucketView& view : table_.bucketViews())
         {
@@ -156,6 +156,38 @@ namespace pds
         Display::printMessage("Load factor: " + stream.str() +
             " (" + std::to_string(table_.size()) + " entries / " +
             std::to_string(table_.bucketCount()) + " buckets)");
+    }
+
+    /*
+     * Purpose: Toggle the active collision strategy and confirm the new mode.
+     * Design: Keeps strategy choice in the session while the table migrates entries internally.
+     * Workflow: Pick the other strategy, ask the table to switch, and report the active mode.
+     * Data Handoff: Sends the user's intent to the table and the result to the console.
+     */
+    void HashTableSession::switchStrategy()
+    {
+        const HashStrategy next = table_.strategy() == HashStrategy::SeparateChaining
+            ? HashStrategy::LinearProbing
+            : HashStrategy::SeparateChaining;
+        table_.useStrategy(next);
+        Display::printMessage("Active hashing strategy: " + table_.strategyName());
+    }
+
+    /*
+     * Purpose: Show collision and probe metrics for the active strategy.
+     * Design: Surfaces the teaching metrics that distinguish chaining from probing.
+     * Workflow: Read the strategy name, collisions, longest run, and average probe length, then print them.
+     * Data Handoff: Reads table metrics and writes them to the console.
+     */
+    void HashTableSession::showCollisionMetrics() const
+    {
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(3) << table_.averageProbeLength();
+
+        Display::printMessage("Strategy: " + table_.strategyName());
+        Display::printMessage("Collisions: " + std::to_string(table_.collisionCount()));
+        Display::printMessage("Longest run (chain or cluster): " + std::to_string(table_.longestRun()));
+        Display::printMessage("Average probe length: " + stream.str());
     }
 
     /*

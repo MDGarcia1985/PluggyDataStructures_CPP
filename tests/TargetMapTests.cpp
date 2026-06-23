@@ -9,7 +9,7 @@
 
 #include "TestHarness.h"
 
-#include "core/TargetMap.h"
+#include "structures/TargetMap.h"
 #include "registry/StructureRegistries.h"
 #include "session/MapSession.h"
 
@@ -97,6 +97,6 @@ PDS_TEST(testMapClearSessionAndRegistry)
     expectEqual(static_cast<std::size_t>(session.map().totalWords()), 2, "Map session analyzes loaded targets.");
 
     const auto operations = pds::MapRegistry::instance().operations();
-    expectEqual(operations.size(), 7, "Map registry exposes six operations and Back.");
+    expectEqual(operations.size(), 14, "Map registry exposes thirteen operations and Back.");
     expect(operations.back().isExit, "Map registry keeps Back last.");
 }

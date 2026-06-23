@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "core/TargetList.h"
+#include "structures/TargetList.h"
 
 namespace pds
 {

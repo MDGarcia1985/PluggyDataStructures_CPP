@@ -8,7 +8,15 @@
  */
 
 #include "session/GraphSession.h"
+
+#include "algorithms/graphs/GraphAnalysis.h"
+#include "algorithms/graphs/GraphSearch.h"
+#include "algorithms/graphs/GraphTraversal.h"
+#include "algorithms/graphs/ShortestPath.h"
 #include "ui/Display.h"
+
+#include <iomanip>
+#include <sstream>
 
 
 // named container pds = Pluggy Data Structures
@@ -114,7 +122,7 @@ namespace pds
             return;
         }
 
-        Display::printTargets("Breadth-first order", graph_.breadthFirst(startId));
+        Display::printTargets("Breadth-first order", pds::breadthFirst(graph_, startId));
     }
 
     /*
@@ -136,7 +144,115 @@ namespace pds
             return;
         }
 
-        Display::printTargets("Depth-first order", graph_.depthFirst(startId));
+        Display::printTargets("Depth-first order", pds::depthFirst(graph_, startId));
+    }
+
+    /*
+     * Purpose: Report whether a directed path connects two user-chosen nodes.
+     * Design: Resolves both keys to ids before delegating to GraphSearch.
+     * Workflow: Prompt for two keys, resolve ids, run pathExists, and report the verdict.
+     * Data Handoff: Moves user text into the reachability query and shows the result.
+     */
+    void GraphSession::pathExistsFromUser() const
+    {
+        std::string fromKey;
+        std::string toKey;
+
+        std::cout << "\nEnter source node key: ";
+        std::getline(std::cin, fromKey);
+        std::cout << "Enter destination node key: ";
+        std::getline(std::cin, toKey);
+
+        std::size_t fromId = 0;
+        std::size_t toId = 0;
+        if (!graph_.findId(fromKey, fromId) || !graph_.findId(toKey, toId))
+        {
+            Display::printMessage("Both node keys must exist.");
+            return;
+        }
+
+        if (pds::pathExists(graph_, fromId, toId))
+        {
+            Display::printMessage("A path exists between the nodes.");
+        }
+        else
+        {
+            Display::printMessage("No path connects the nodes.");
+        }
+    }
+
+    /*
+     * Purpose: Show the least-weight path between two user-chosen nodes.
+     * Design: Resolves keys to ids, then delegates to the Dijkstra ShortestPath module.
+     * Workflow: Prompt for two keys, run shortestPath, and display the path and total distance.
+     * Data Handoff: Moves user text into the weighted search and shows the resulting path.
+     */
+    void GraphSession::shortestPathFromUser() const
+    {
+        std::string fromKey;
+        std::string toKey;
+
+        std::cout << "\nEnter source node key: ";
+        std::getline(std::cin, fromKey);
+        std::cout << "Enter destination node key: ";
+        std::getline(std::cin, toKey);
+
+        std::size_t fromId = 0;
+        std::size_t toId = 0;
+        if (!graph_.findId(fromKey, fromId) || !graph_.findId(toKey, toId))
+        {
+            Display::printMessage("Both node keys must exist.");
+            return;
+        }
+
+        const ShortestPathResult result = pds::shortestPath(graph_, fromId, toId);
+        if (!result.reachable)
+        {
+            Display::printMessage("No path connects the nodes.");
+            return;
+        }
+
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(2) << result.distance;
+        Display::printMessage("Shortest path distance: " + stream.str());
+        Display::printTargets("Shortest path", result.path);
+    }
+
+    /*
+     * Purpose: Show the out-degree of a user-chosen node.
+     * Design: Resolves a key to an id and delegates to GraphAnalysis.
+     * Workflow: Prompt for a key, resolve the id, and display its out-degree.
+     * Data Handoff: Moves user text into the degree query and shows the count.
+     */
+    void GraphSession::showDegreeFromUser() const
+    {
+        std::string key;
+        std::cout << "\nEnter node key: ";
+        std::getline(std::cin, key);
+
+        std::size_t id = 0;
+        if (!graph_.findId(key, id))
+        {
+            Display::printMessage("No node matches that key.");
+            return;
+        }
+
+        Display::printMessage("Out-degree: " + std::to_string(pds::degree(graph_, id)));
+    }
+
+    /*
+     * Purpose: Show the number of connected components and whether the graph has a cycle.
+     * Design: Delegates both metrics to GraphAnalysis, keeping computation out of the session.
+     * Workflow: Read the component count and cycle verdict, then display them.
+     * Data Handoff: Reads analysis results and writes them to the console.
+     */
+    void GraphSession::showStructure() const
+    {
+        Display::printMessage("Connected components: " + std::to_string(pds::connectedComponents(graph_)));
+        const std::string cycleLabel = graph_.hasDirectedEdges()
+            ? "Contains a Directed cycle: "
+            : "Contains an undirected cycle: ";
+        Display::printMessage(cycleLabel + (pds::hasCycle(graph_) ? "yes" : "no"));
     }
 
     /*

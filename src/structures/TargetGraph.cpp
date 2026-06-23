@@ -7,34 +7,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "core/TargetGraph.h"
-#include "core/VisitedSet.h"
+#include "structures/TargetGraph.h"
 
-#include <queue>
+#include "algorithms/common/KeyNormalization.h"
+
+#include <cmath>
 
 
 // named container pds = Pluggy Data Structures
 namespace pds
 {
-    namespace
-    {
-        /*
-         * Purpose: Normalize a node key for case-insensitive matching.
-         * Design: Works on a copy so stored Target values are never altered.
-         * Workflow: Lowercase each byte safely and return the converted text.
-         * Data Handoff: Supplies findId() with comparable text derived from a Target field.
-         */
-        std::string lowercaseKey(std::string text)
-        {
-            std::transform(text.begin(), text.end(), text.begin(),
-                [](unsigned char character)
-                {
-                    return static_cast<char>(std::tolower(character));
-                });
-            return text;
-        }
-    }
-
     /*
      * Purpose: Add a node and return its stable integer id.
      * Design: Stores nodes in a vector arena so an id is simply the vector index.
@@ -56,10 +38,10 @@ namespace pds
      */
     bool TargetGraph::findId(const std::string& key, std::size_t& outId) const
     {
-        const std::string normalizedKey = lowercaseKey(key);
+        const std::string normalizedKey = normalizeKey(key);
         for (std::size_t id = 0; id < nodes_.size(); ++id)
         {
-            if (lowercaseKey(nodes_[id].fieldOne()) == normalizedKey)
+            if (normalizeKey(nodes_[id].fieldOne()) == normalizedKey)
             {
                 outId = id;
                 return true;
@@ -76,15 +58,19 @@ namespace pds
      */
     bool TargetGraph::addEdge(std::size_t from, std::size_t to, double weight, bool directed)
     {
-        if (from >= nodes_.size() || to >= nodes_.size())
+        if (from >= nodes_.size() || to >= nodes_.size() || weight < 0.0 || !std::isfinite(weight))
         {
             return false;
         }
 
-        adjacency_[from].push_back(GraphEdge{to, weight});
+        adjacency_[from].push_back(GraphEdge{to, weight, directed});
+        if (directed)
+        {
+            hasDirectedEdges_ = true;
+        }
         if (!directed && from != to)
         {
-            adjacency_[to].push_back(GraphEdge{from, weight});
+            adjacency_[to].push_back(GraphEdge{from, weight, false});
         }
         return true;
     }
@@ -128,6 +114,11 @@ namespace pds
         return nodes_.empty();
     }
 
+    bool TargetGraph::hasDirectedEdges() const
+    {
+        return hasDirectedEdges_;
+    }
+
     /*
      * Purpose: Read the Target stored at a node id.
      * Design: Returns a const reference into the arena for direct read access.
@@ -159,88 +150,5 @@ namespace pds
     std::vector<Target> TargetGraph::nodesSnapshot() const
     {
         return nodes_;
-    }
-
-    /*
-     * Purpose: Visit nodes in breadth-first order from a start id.
-     * Design: Uses a FIFO queue of ids and a VisitedSet to avoid revisiting in cyclic graphs.
-     * Workflow: Mark and enqueue the start, then dequeue ids and enqueue unvisited neighbors.
-     * Data Handoff: Returns the visited Targets in discovery order.
-     */
-    std::vector<Target> TargetGraph::breadthFirst(std::size_t start) const
-    {
-        std::vector<Target> order;
-        if (start >= nodes_.size())
-        {
-            return order;
-        }
-
-        VisitedSet visited(nodes_.size());
-        std::queue<std::size_t> pending;
-        visited.add(start);
-        pending.push(start);
-
-        while (!pending.empty())
-        {
-            const std::size_t current = pending.front();
-            pending.pop();
-            order.push_back(nodes_[current]);
-
-            for (const GraphEdge& edge : adjacency_[current])
-            {
-                if (!visited.contains(edge.to))
-                {
-                    visited.add(edge.to);
-                    pending.push(edge.to);
-                }
-            }
-        }
-
-        return order;
-    }
-
-    /*
-     * Purpose: Visit nodes in depth-first order from a start id.
-     * Design: Uses an explicit stack of ids and a VisitedSet to avoid revisiting in cyclic graphs.
-     * Workflow: Push the start, then pop ids, recording first visits and stacking unvisited neighbors.
-     * Data Handoff: Returns the visited Targets in discovery order.
-     */
-    std::vector<Target> TargetGraph::depthFirst(std::size_t start) const
-    {
-        std::vector<Target> order;
-        if (start >= nodes_.size())
-        {
-            return order;
-        }
-
-        VisitedSet visited(nodes_.size());
-        std::vector<std::size_t> pending;
-        pending.push_back(start);
-
-        while (!pending.empty())
-        {
-            const std::size_t current = pending.back();
-            pending.pop_back();
-
-            if (visited.contains(current))
-            {
-                continue;
-            }
-
-            visited.add(current);
-            order.push_back(nodes_[current]);
-
-            const std::vector<GraphEdge>& edges = adjacency_[current];
-            for (std::size_t index = edges.size(); index > 0; --index)
-            {
-                const GraphEdge& edge = edges[index - 1];
-                if (!visited.contains(edge.to))
-                {
-                    pending.push_back(edge.to);
-                }
-            }
-        }
-
-        return order;
     }
 }

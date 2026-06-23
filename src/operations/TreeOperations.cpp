@@ -36,3 +36,6 @@ PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
 
 PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{8, "Show height and node count", [](pds::TreeSession& session) { session.showHeight(); }})
+
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+    TreeOp{9, "Show structure (leaves and balance)", [](pds::TreeSession& session) { session.showStructure(); }})

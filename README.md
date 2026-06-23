@@ -1,6 +1,6 @@
 # PluggyDataStructure
 
-PluggyDataStructure is a C++17 learning project that loads TXT and CSV datasets into a family of classic data structures: a doubly linked list, stack, queue, binary search tree, integer-id graph, and separate-chaining hash table. Its UI, registries, sessions, operations, sorting support, file loading, and core data structures are separated so new structures and plugins can be added by reusing one generic registry plus menu-controller spine.
+PluggyDataStructure is a C++17 learning project that loads TXT and CSV datasets into a family of classic data structures: a doubly linked list, stack, queue, binary search tree, integer-id graph, hash table, and map-backed word-frequency counter. Its UI, registries, sessions, operations, pure algorithm modules, file loading, and structures are separated so new structures and plugins can be added by reusing one generic registry plus menu-controller spine.
 
 ## Build And Run
 
@@ -80,9 +80,10 @@ After choosing a dataset the application opens a Data Structure Menu:
 Linked List  -> browse, add, delete, find, sort
 Stack        -> push, pop, peek (LIFO)
 Queue        -> enqueue, dequeue, peek (FIFO)
-Binary Tree  -> insert, find, remove, in/pre/post/level-order traversals, height
-Graph        -> nodes, adjacency, BFS, DFS, add edge
-Hash Table   -> insert/update, find, erase, bucket view, load factor
+Binary Tree  -> insert, find, remove, traversals, height, leaves, balance
+Graph        -> nodes, adjacency, BFS, DFS, add edge, path queries, weighted shortest path, degree, cycle/components
+Hash Table   -> insert/update, find, erase, bucket/slot view, load factor, collision metrics, chaining/probing strategy switch
+Map          -> typed text analysis, loaded-target word analysis, frequency rankings, prefix search
 ```
 
 Each structure is populated from the currently selected dataset. The graph also reads an optional edge-list companion file (see Dataset Support).
@@ -112,7 +113,7 @@ fromKey|toKey|weight     # weight optional, defaults to 1.0, undirected by defau
 fromKey,toKey,weight     # comma-delimited rows are also accepted
 ```
 
-Edges reference nodes by their first field (`Target::fieldOne()`). If no edge file exists, the graph still loads the nodes and edges can be added from the menu.
+Edges reference nodes by their first field (`Target::fieldOne()`). Edge weights must be non-negative because weighted shortest path uses Dijkstra's algorithm. If no edge file exists, the graph still loads the nodes and edges can be added from the menu.
 
 Edge loading reports distinct `NotFound`, `Loaded`, `Empty`, and `Invalid` outcomes. Invalid rows are counted, valid rows can still load from a partially malformed file, and edge records whose node keys do not exist are reported separately.
 
@@ -183,15 +184,15 @@ Each `StructureRegistry` seeds its own ID `0` Exit/Back item, rejects duplicate 
 ```text
 include/
   app/        App.h
-  core/       Header.h, Target.h, TargetList.h, TargetProgram.h,
-              TargetStack.h, TargetQueue.h, TargetTree.h,
-              TargetGraph.h, TargetHashTable.h, VisitedSet.h
+  algorithms/ common/, graphs/, hashing/, maps/, sorting/, trees/
+  core/       Header.h, Target.h, TargetProgram.h, VisitedSet.h
   io/         FileLoader.h
   registry/   RegistryBase.h, Operation.h, OperationRegistry.h,
               CommandRegistry.h, SortRegistry.h, StructureRegistries.h
   session/    StackSession.h, QueueSession.h, TreeSession.h,
-              GraphSession.h, HashTableSession.h
-  sorting/    SortSupport.h
+              GraphSession.h, HashTableSession.h, MapSession.h
+  structures/ TargetList.h, TargetStack.h, TargetQueue.h, TargetTree.h,
+              TargetGraph.h, TargetHashTable.h, TargetMap.h
   ui/         Display.h, Menu.h, MenuController.h, MainMenu.h,
               DataSourceMenu.h, StructureMenu.h,
               TargetDataStructureMenu.h, SortTypeMenu.h
@@ -199,23 +200,24 @@ include/
 src/
   app/        App.cpp
   commands/   one file per linked-list command
-  algorithms/ InsertionSort.cpp, SelectionSort.cpp
+  algorithms/ common/, graphs/, hashing/, maps/, sorting/, trees/
   operations/ StackOperations.cpp, QueueOperations.cpp, TreeOperations.cpp,
-              GraphOperations.cpp, HashTableOperations.cpp
-  core/       Target.cpp, TargetList.cpp, TargetProgram.cpp,
-              TargetStack.cpp, TargetQueue.cpp, TargetTree.cpp,
-              TargetGraph.cpp, TargetHashTable.cpp
+              GraphOperations.cpp, HashTableOperations.cpp,
+              MapOperations.cpp, SortOperations.cpp
+  core/       Target.cpp, TargetProgram.cpp
   io/         FileLoader.cpp
   registry/   CommandRegistry.cpp, SortRegistry.cpp
   session/    StackSession.cpp, QueueSession.cpp, TreeSession.cpp,
-              GraphSession.cpp, HashTableSession.cpp
-  sorting/    SortSupport.cpp
+              GraphSession.cpp, HashTableSession.cpp, MapSession.cpp
+  structures/ TargetList.cpp, TargetStack.cpp, TargetQueue.cpp, TargetTree.cpp,
+              TargetGraph.cpp, TargetHashTable.cpp, TargetMap.cpp
   ui/         Display.cpp, Menu.cpp, MainMenu.cpp, DataSourceMenu.cpp,
               StructureMenu.cpp, TargetDataStructureMenu.cpp, SortTypeMenu.cpp
 
 tests/
   TestHarness.h, TestMain.cpp, ApplicationTests.cpp,
-  TargetTreeTests.cpp, TargetGraphTests.cpp, TargetHashTableTests.cpp
+  AlgorithmTests.cpp, TargetTreeTests.cpp, TargetGraphTests.cpp,
+  TargetHashTableTests.cpp, TargetMapTests.cpp
 ```
 
 ## Tests
@@ -224,6 +226,6 @@ Tests self-register with `PDS_TEST(name)` into a shared `TestRegistry` (mirrorin
 
 ## Extension Points
 
-Add a data structure by following the existing quartet: a `core/` structure, an `XSession`, an `XRegistry` alias of `StructureRegistry<XSession>`, and one `src/operations/` file. Route it from `StructureMenu` with `MenuController<XRegistry, XSession>`. No changes to `Menu` or the generic spine are required.
+Add a data structure by following the existing quartet: a `structures/` container, an `XSession`, an `XRegistry` alias of `StructureRegistry<XSession>`, and one `src/operations/` file. Put reusable algorithms under `include/algorithms/` and `src/algorithms/` when behavior should stay UI-free. Route the structure from `StructureMenu` with `MenuController<XRegistry, XSession>`. No changes to `Menu` or the generic spine are required.
 
 New and modified functions use the standard `Purpose`, `Design`, `Workflow`, and `Data Handoff` header.

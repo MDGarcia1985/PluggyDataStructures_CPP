@@ -9,7 +9,10 @@
 
 #include "TestHarness.h"
 
-#include "core/TargetTree.h"
+#include "algorithms/trees/TreeAnalysis.h"
+#include "algorithms/trees/TreeSearch.h"
+#include "algorithms/trees/TreeTraversal.h"
+#include "structures/TargetTree.h"
 #include "registry/StructureRegistries.h"
 #include "session/TreeSession.h"
 
@@ -66,13 +69,13 @@ PDS_TEST(testTreeInsertionAndOrdering)
     pds::TargetTree tree = buildSampleTree();
 
     expectEqual(tree.size(), 7, "Tree counts inserted nodes.");
-    expectEqual(tree.height(), 3, "Balanced sample tree has height three.");
+    expectEqual(pds::height(tree), 3, "Balanced sample tree has height three.");
     expect(!tree.isEmpty(), "Populated tree is not empty.");
 
-    expectEqual(keysOf(tree.inOrder()), "B,F,G,M,Q,T,Z", "In-order traversal yields sorted keys.");
-    expectEqual(keysOf(tree.preOrder()), "M,F,B,G,T,Q,Z", "Pre-order traversal is root-first.");
-    expectEqual(keysOf(tree.postOrder()), "B,G,F,Q,Z,T,M", "Post-order traversal is children-first.");
-    expectEqual(keysOf(tree.levelOrder()), "M,F,T,B,G,Q,Z", "Level-order traversal is breadth-first.");
+    expectEqual(keysOf(pds::inOrder(tree)), "B,F,G,M,Q,T,Z", "In-order traversal yields sorted keys.");
+    expectEqual(keysOf(pds::preOrder(tree)), "M,F,B,G,T,Q,Z", "Pre-order traversal is root-first.");
+    expectEqual(keysOf(pds::postOrder(tree)), "B,G,F,Q,Z,T,M", "Post-order traversal is children-first.");
+    expectEqual(keysOf(pds::levelOrder(tree)), "M,F,T,B,G,Q,Z", "Level-order traversal is breadth-first.");
 }
 
 /*
@@ -121,10 +124,10 @@ PDS_TEST(testTreeRemoval)
 
     expect(tree.removeByKey("F"), "Removing a two-child node succeeds.");
     expectEqual(tree.size(), 6, "Size decreases after removal.");
-    expectEqual(keysOf(tree.inOrder()), "B,G,M,Q,T,Z", "In-order stays sorted after removal.");
+    expectEqual(keysOf(pds::inOrder(tree)), "B,G,M,Q,T,Z", "In-order stays sorted after removal.");
 
     expect(tree.removeByKey("Z"), "Removing a leaf node succeeds.");
-    expectEqual(keysOf(tree.inOrder()), "B,G,M,Q,T", "Leaf removal updates traversal.");
+    expectEqual(keysOf(pds::inOrder(tree)), "B,G,M,Q,T", "Leaf removal updates traversal.");
 
     expect(!tree.removeByKey("X"), "Removing a missing key fails.");
 }
@@ -141,14 +144,14 @@ PDS_TEST(testTreeCopySemantics)
 
     pds::TargetTree copied(original);
     expectEqual(copied.size(), original.size(), "Copy constructor preserves size.");
-    expectEqual(keysOf(copied.inOrder()), keysOf(original.inOrder()), "Copy reproduces traversal.");
+    expectEqual(keysOf(pds::inOrder(copied)), keysOf(pds::inOrder(original)), "Copy reproduces traversal.");
 
     copied.removeByKey("M");
     expectEqual(original.size(), 7, "Mutating a copy does not affect the original.");
 
     pds::TargetTree assigned;
     assigned = original;
-    expectEqual(keysOf(assigned.inOrder()), keysOf(original.inOrder()), "Copy assignment reproduces traversal.");
+    expectEqual(keysOf(pds::inOrder(assigned)), keysOf(pds::inOrder(original)), "Copy assignment reproduces traversal.");
 
     pds::TargetTree moved(std::move(assigned));
     expectEqual(moved.size(), 7, "Move constructor transfers nodes.");
@@ -170,7 +173,7 @@ PDS_TEST(testTreeSessionAndRegistry)
 
     pds::TreeSession session(items);
     expectEqual(session.tree().size(), 3, "Tree session loads all items.");
-    expectEqual(keysOf(session.tree().inOrder()), "Apple,Mango,Pear", "Tree session sorts loaded items.");
+    expectEqual(keysOf(pds::inOrder(session.tree())), "Apple,Mango,Pear", "Tree session sorts loaded items.");
 
     const auto operations = pds::TreeRegistry::instance().operations();
     expect(operations.size() >= 2, "Tree registry holds registered operations.");

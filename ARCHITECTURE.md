@@ -1,6 +1,6 @@
 # Architecture
 
-PluggyDataStructure separates reusable UI behavior, menu navigation, registration, business operations, data loading, and sorting.
+PluggyDataStructure separates reusable UI behavior, menu navigation, registration, business operations, data loading, pure algorithms, and data-structure storage.
 
 ## Runtime Flow
 
@@ -12,7 +12,7 @@ main.cpp
 -> FileLoader::loadTargetsOrFallback
 -> StructureMenu
    -> Linked List: TargetProgram -> CommandRegistry -> MenuController
-      -> optional SortTypeMenu -> SortRegistry action -> SortSupport
+      -> optional SortTypeMenu -> SortRegistry action -> sorting algorithms + benchmark adapter
    -> Stack: StackSession -> StackRegistry -> MenuController
    -> Queue: QueueSession -> QueueRegistry -> MenuController
    -> Tree: TreeSession -> TreeRegistry -> MenuController
@@ -109,31 +109,35 @@ The adapters call public `TargetProgram` operations. They do not own list state 
 
 `SortListCommand` opens `SortTypeMenu`; it does not know which algorithms are registered.
 
-## Sorting Boundary
+## Algorithm Boundary
 
-Algorithm files contain:
+Algorithm files under `include/algorithms/` and `src/algorithms/` contain UI-free reusable behavior:
 
 ```text
-algorithm implementation
-small TargetProgram adapter
-SortRegistry registration
+common: key normalization, Target ordering, traversal engine
+sorting: insertion sort, selection sort, quick sort, benchmark support
+graphs: traversal, search, weighted shortest path, structure analysis
+hashing: hash function, separate chaining, linear probing, collision analysis
+maps: frequency analysis, search, ranking
+trees: traversal, search, expression evaluation, structure analysis
 ```
 
-`sorting/SortSupport` owns:
+Sorting registration is intentionally separated from sorting mechanics. Pure sort functions mutate `std::vector<Target>&`; `SortOperations.cpp` adapts those functions to the linked-list workflow, benchmarks them, replaces the active list, and registers menu entries with `SortRegistry`.
+
+The sort benchmark adapter owns:
 
 ```text
-generic Target comparison
 timing repetition policy
 vector snapshots and copies
 sorted TargetList replacement
 timing output
 ```
 
-`registry/SortRegistry` owns algorithm registration. `ui/SortTypeMenu` owns sorting navigation. Neither responsibility remains in `SortSupport`.
+`registry/SortRegistry` owns algorithm registration. `ui/SortTypeMenu` owns sorting navigation. Neither responsibility lives in a data structure or in the pure algorithm modules.
 
 ## Core Boundary
 
-`core/TargetList` remains domain-neutral. It owns node memory, list mutation, navigation, search, and vector snapshots.
+`structures/TargetList` remains domain-neutral. It owns node memory, list mutation, navigation, search, and vector snapshots.
 
 `core/TargetProgram` coordinates business operations on the active list:
 
@@ -163,7 +167,7 @@ Application startup passes it into `MainMenu`; core code does not start UI navig
 ```text
 core/Target
     ^
-core/TargetList
+structures/TargetList
     ^
 core/TargetProgram <--- commands
     ^       ^              ^
@@ -173,12 +177,12 @@ core/TargetProgram <--- commands
             |
          app/Main
 
-algorithms -> SortRegistry
-algorithms -> SortSupport -> TargetProgram
+algorithms -> operations/SortOperations -> SortRegistry
+algorithms -> sessions/operations -> structures
 SortTypeMenu -> SortRegistry
 ```
 
-`Menu` sits below menu controllers as a reusable console helper. Registries do not render menus. Core containers do not depend on registries. `TargetStack` and `TargetQueue` retain legacy `display()` convenience methods that delegate to `ui/Display`; interactive structure behavior otherwise lives in sessions.
+`Menu` sits below menu controllers as a reusable console helper. Registries do not render menus. Structures do not depend on registries. `TargetStack` and `TargetQueue` retain legacy `display()` convenience methods that delegate to `ui/Display`; interactive structure behavior otherwise lives in sessions.
 
 ## Include Paths
 
@@ -190,7 +194,8 @@ Includes reflect ownership:
 #include "io/FileLoader.h"
 #include "registry/CommandRegistry.h"
 #include "registry/SortRegistry.h"
-#include "sorting/SortSupport.h"
+#include "structures/TargetList.h"
+#include "algorithms/sorting/QuickSort.h"
 #include "ui/Menu.h"
 #include "ui/SortTypeMenu.h"
 ```
@@ -220,20 +225,24 @@ MainMenu -> DataSourceMenu -> StructureMenu -> MenuController<XRegistry, XSessio
 ## Implemented Structure Systems
 
 ```text
-Linked List   TargetProgram + CommandRegistry + commands
+Linked List   TargetProgram + TargetList + CommandRegistry + commands
 Stack         StackSession + StackRegistry + StackOperations
 Queue         QueueSession + QueueRegistry + QueueOperations
-Binary Tree   TargetTree + TreeSession + TreeRegistry + TreeOperations
-Graph         TargetGraph (integer-id arena) + VisitedSet + GraphSession + GraphRegistry + GraphOperations
-Hash Table    TargetHashTable (separate chaining) + HashTableSession + HashTableRegistry + HashTableOperations
+Binary Tree   TargetTree + tree algorithms + TreeSession + TreeRegistry + TreeOperations
+Graph         TargetGraph (integer-id arena) + graph algorithms + GraphSession + GraphRegistry + GraphOperations
+Hash Table    TargetHashTable facade + hashing algorithms + HashTableSession + HashTableRegistry + HashTableOperations
 Map           TargetMap (ordered word counts) + MapSession + MapRegistry + MapOperations
 ```
 
 Sessions own interactive I/O and operation modules in `src/operations/` self-register. Every session receives either the selected dataset or the shared fallback dataset. The graph reads an optional `<dataset>.edges` companion file via `FileLoader`.
 
+`TargetHashTable` delegates storage to either separate chaining or linear probing. Strategy switching preserves entries and lets the session compare bucket views, load factor, collision metrics, longest chain/cluster, and average probe length.
+
+`TargetTree` keeps its node type private. Tree algorithms call public tree-owned helpers such as `visit(...)`, `height()`, `minimum()`, and `pathToKey()` so traversal and analysis do not expose mutation-capable internals.
+
 ## Map / Word Frequency Boundary
 
-`core/TargetMap` owns word-frequency data and analysis. Its storage is:
+`structures/TargetMap` owns word-frequency data and analysis. Its storage is:
 
 ```cpp
 std::map<std::string, int> wordCounts_;
@@ -253,7 +262,7 @@ clears and exposes frequencies through read-only access
 
 `session/MapSession` owns interactive input and output plus the selected dataset snapshot. It replaces the current analysis when counting typed text or loaded Target fields, guards empty-state displays, and delegates all parsing and storage to `TargetMap`.
 
-`operations/MapOperations.cpp` registers six positive-ID operations with `MapRegistry`:
+`operations/MapOperations.cpp` registers thirteen positive-ID operations with `MapRegistry`:
 
 ```text
 count typed text
@@ -262,6 +271,13 @@ show alphabetical frequencies
 show most-frequent word or ties
 show summary metrics
 clear counts
+show top N words
+show least frequent N words
+show frequency buckets
+search for a word
+list words starting with a prefix
+show frequency ranking
+show alphabetical ranking
 ```
 
 The registry-owned ID `0` Back item remains last in the generated menu.
@@ -302,10 +318,14 @@ skippedRowCount: malformed data rows ignored by the parser
 
 Parsing and graph resolution remain separate. `FileLoader` reports file and row state; `GraphSession` counts parsed edges rejected because a source or destination key is absent from the selected node dataset. `StructureMenu` combines both results into accurate user-facing diagnostics while keeping an edgeless graph usable.
 
+`TargetGraph::addEdge()` rejects negative and non-finite weights. Weighted shortest path uses Dijkstra's algorithm, so this validation keeps the graph API aligned with the algorithm's assumptions.
+
+Cycle reporting distinguishes directed from undirected data. Graph edges record whether they originated from a directed edge; the analysis ignores only the immediate reverse parent edge for undirected traversal and the UI uses a directed-cycle label only when the graph actually contains directed edges.
+
 ## Build Note: Self-Registration
 
 Operation, command, and sort modules register through global initializers. The CMake build compiles all `src/` files into an OBJECT library linked directly into both executables, ensuring the linker retains those object files so registration runs before `main`.
 
 ## Future Systems
 
-The same spine supports further additions (for example a search system) by adding a `core/` structure, an `XSession`, an `XRegistry` alias, and one `src/operations/` module, then routing it from `StructureMenu`. No changes to `Menu` or the generic spine are required.
+The same spine supports further additions by adding a `structures/` container, an `XSession`, an `XRegistry` alias, and one `src/operations/` module, then routing it from `StructureMenu`. UI-free reusable behavior belongs under `algorithms/`. No changes to `Menu` or the generic spine are required.

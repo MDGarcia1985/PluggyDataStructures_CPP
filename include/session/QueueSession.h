@@ -10,7 +10,7 @@
 #pragma once
 
 #include "core/Header.h"
-#include "core/TargetQueue.h"
+#include "structures/TargetQueue.h"
 
 
 // named container pds = Pluggy Data Structures

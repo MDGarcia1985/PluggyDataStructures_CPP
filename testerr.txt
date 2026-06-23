@@ -1,0 +1,8 @@
+RUN: testTargetModel
+RUN: testTargetListDataStructure
+RUN: testListEndpointRemoval
+RUN: testStackAndQueue
+RUN: testFileLoadingLayer
+RUN: testStructureMenuUsesFallbackData
+RUN: testEdgeFileLoadingLayer
+RUN: testStructureMenuReportsInvalidEdgeFile

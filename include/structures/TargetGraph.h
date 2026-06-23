@@ -20,6 +20,7 @@ namespace pds
     {
         std::size_t to;
         double weight;
+        bool directed;
     };
 
     class TargetGraph
@@ -27,6 +28,7 @@ namespace pds
     private:
         std::vector<Target> nodes_;
         std::vector<std::vector<GraphEdge>> adjacency_;
+        bool hasDirectedEdges_ = false;
 
     public:
         std::size_t addNode(const Target& target);
@@ -36,11 +38,10 @@ namespace pds
 
         std::size_t nodeCount() const;
         bool isEmpty() const;
+        bool hasDirectedEdges() const;
         const Target& node(std::size_t id) const;
         const std::vector<GraphEdge>& neighbors(std::size_t id) const;
 
         std::vector<Target> nodesSnapshot() const;
-        std::vector<Target> breadthFirst(std::size_t start) const;
-        std::vector<Target> depthFirst(std::size_t start) const;
     };
 }

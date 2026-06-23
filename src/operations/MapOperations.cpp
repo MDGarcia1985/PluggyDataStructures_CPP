@@ -30,3 +30,24 @@ PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
 
 PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
     MapOp{6, "Clear word counts", [](pds::MapSession& session) { session.clear(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{7, "Show top N words", [](pds::MapSession& session) { session.showTopNFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{8, "Show least frequent N words", [](pds::MapSession& session) { session.showLeastFrequentFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{9, "Show frequency buckets", [](pds::MapSession& session) { session.showFrequencyBuckets(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{10, "Search for a word", [](pds::MapSession& session) { session.searchWordFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{11, "List words starting with prefix", [](pds::MapSession& session) { session.showWordsStartingWithFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{12, "Show frequency ranking", [](pds::MapSession& session) { session.showFrequencyRanking(); }})
+
+PDS_REGISTER_OPERATION(pds::MapRegistry::instance(),
+    MapOp{13, "Show alphabetical ranking", [](pds::MapSession& session) { session.showAlphabeticalRanking(); }})

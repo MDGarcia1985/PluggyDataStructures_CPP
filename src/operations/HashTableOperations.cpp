@@ -27,3 +27,9 @@ PDS_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
 
 PDS_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
     HashOp{5, "Remove by key", [](pds::HashTableSession& session) { session.eraseFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{6, "Show collision metrics", [](pds::HashTableSession& session) { session.showCollisionMetrics(); }})
+
+PDS_REGISTER_OPERATION(pds::HashTableRegistry::instance(),
+    HashOp{7, "Switch strategy (chaining / probing)", [](pds::HashTableSession& session) { session.switchStrategy(); }})

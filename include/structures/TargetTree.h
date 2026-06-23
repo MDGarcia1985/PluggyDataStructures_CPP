@@ -12,10 +12,20 @@
 #include "core/Header.h"
 #include "core/Target.h"
 
+#include <functional>
+
 
 // named container pds = Pluggy Data Structures
 namespace pds
 {
+    enum class TreeVisitOrder
+    {
+        InOrder,
+        PreOrder,
+        PostOrder,
+        LevelOrder
+    };
+
     class TargetTree
     {
     private:
@@ -33,12 +43,13 @@ namespace pds
 
         static Node* copyTree(const Node* source);
         static void destroyTree(Node* node);
-        static std::size_t heightOf(const Node* node);
         static Node* minimumNode(Node* node);
-
-        void inOrder(const Node* node, std::vector<Target>& output) const;
-        void preOrder(const Node* node, std::vector<Target>& output) const;
-        void postOrder(const Node* node, std::vector<Target>& output) const;
+        static std::size_t heightOf(const Node* node);
+        static std::size_t leafCountOf(const Node* node);
+        static bool checkBalanced(const Node* node, std::size_t& outHeight);
+        static void visitInOrder(const Node* node, const std::function<void(const Target&)>& visitor);
+        static void visitPreOrder(const Node* node, const std::function<void(const Target&)>& visitor);
+        static void visitPostOrder(const Node* node, const std::function<void(const Target&)>& visitor);
 
         Node* insertInto(Node* node, const Target& target, bool& inserted);
         Node* removeFrom(Node* node, const Target& target, bool& removed);
@@ -54,7 +65,6 @@ namespace pds
         void clear();
         bool isEmpty() const;
         std::size_t size() const;
-        std::size_t height() const;
 
         bool insert(const Target& target);
         bool contains(const Target& target) const;
@@ -62,9 +72,12 @@ namespace pds
         bool remove(const Target& target);
         bool removeByKey(const std::string& key);
 
-        std::vector<Target> inOrder() const;
-        std::vector<Target> preOrder() const;
-        std::vector<Target> postOrder() const;
-        std::vector<Target> levelOrder() const;
+        void visit(TreeVisitOrder order, const std::function<void(const Target&)>& visitor) const;
+        std::size_t height() const;
+        std::size_t leafCount() const;
+        bool isBalanced() const;
+        bool minimum(Target& found) const;
+        bool maximum(Target& found) const;
+        std::vector<Target> pathToKey(const std::string& key) const;
     };
 }

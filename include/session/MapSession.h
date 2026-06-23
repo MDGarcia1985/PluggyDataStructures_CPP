@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "core/TargetMap.h"
+#include "structures/TargetMap.h"
 
 #include <vector>
 
@@ -31,6 +31,13 @@ namespace pds
         void showWordFrequencies() const;
         void showMostFrequentWords() const;
         void showSummary() const;
+        void showTopNFromUser() const;
+        void showLeastFrequentFromUser() const;
+        void showFrequencyBuckets() const;
+        void searchWordFromUser() const;
+        void showWordsStartingWithFromUser() const;
+        void showFrequencyRanking() const;
+        void showAlphabeticalRanking() const;
         void clear();
 
         TargetMap& map();

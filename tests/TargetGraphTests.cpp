@@ -9,7 +9,8 @@
 
 #include "TestHarness.h"
 
-#include "core/TargetGraph.h"
+#include "algorithms/graphs/GraphTraversal.h"
+#include "structures/TargetGraph.h"
 #include "io/FileLoader.h"
 #include "registry/StructureRegistries.h"
 #include "session/GraphSession.h"
@@ -98,9 +99,9 @@ PDS_TEST(testGraphTraversals)
     std::size_t start = 0;
     graph.findId("A", start);
 
-    expectEqual(keysOf(graph.breadthFirst(start)), "A,B,C,D,E", "BFS visits nodes in breadth-first order.");
+    expectEqual(keysOf(pds::breadthFirst(graph, start)), "A,B,C,D,E", "BFS visits nodes in breadth-first order.");
 
-    const std::vector<pds::Target> dfsOrder = graph.depthFirst(start);
+    const std::vector<pds::Target> dfsOrder = pds::depthFirst(graph, start);
     expectEqual(dfsOrder.size(), 5, "DFS visits every reachable node once.");
     expectEqual(dfsOrder.front().fieldOne(), "A", "DFS starts at the requested node.");
 }
@@ -124,8 +125,8 @@ PDS_TEST(testGraphHandlesCycles)
     std::size_t start = 0;
     graph.findId("A", start);
 
-    expectEqual(graph.breadthFirst(start).size(), 3, "BFS terminates on a cyclic graph.");
-    expectEqual(graph.depthFirst(start).size(), 3, "DFS terminates on a cyclic graph.");
+    expectEqual(pds::breadthFirst(graph, start).size(), 3, "BFS terminates on a cyclic graph.");
+    expectEqual(pds::depthFirst(graph, start).size(), 3, "DFS terminates on a cyclic graph.");
 }
 
 /*

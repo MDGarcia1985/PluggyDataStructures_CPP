@@ -10,7 +10,7 @@
 #pragma once
 
 #include "core/Header.h"
-#include "core/TargetGraph.h"
+#include "structures/TargetGraph.h"
 #include "io/FileLoader.h"
 
 
@@ -30,6 +30,10 @@ namespace pds
         void showAdjacency() const;
         void breadthFirstFromUser() const;
         void depthFirstFromUser() const;
+        void pathExistsFromUser() const;
+        void shortestPathFromUser() const;
+        void showDegreeFromUser() const;
+        void showStructure() const;
         void addEdgeFromUser();
 
         std::size_t unresolvedEdgeCount() const;

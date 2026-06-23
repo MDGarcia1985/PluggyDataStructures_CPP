@@ -8,6 +8,10 @@
  */
 
 #include "session/TreeSession.h"
+
+#include "algorithms/trees/TreeAnalysis.h"
+#include "algorithms/trees/TreeSearch.h"
+#include "algorithms/trees/TreeTraversal.h"
 #include "ui/Display.h"
 
 
@@ -80,7 +84,7 @@ namespace pds
         }
 
         Target found;
-        if (tree_.findByKey(key, found))
+        if (pds::find(tree_, key, found))
         {
             Display::printMessage("Found: " + found.toDisplayString());
         }
@@ -126,7 +130,7 @@ namespace pds
      */
     void TreeSession::showInOrder() const
     {
-        Display::printTargets("In-order traversal", tree_.inOrder());
+        Display::printTargets("In-order traversal", pds::inOrder(tree_));
     }
 
     /*
@@ -137,7 +141,7 @@ namespace pds
      */
     void TreeSession::showPreOrder() const
     {
-        Display::printTargets("Pre-order traversal", tree_.preOrder());
+        Display::printTargets("Pre-order traversal", pds::preOrder(tree_));
     }
 
     /*
@@ -148,7 +152,7 @@ namespace pds
      */
     void TreeSession::showPostOrder() const
     {
-        Display::printTargets("Post-order traversal", tree_.postOrder());
+        Display::printTargets("Post-order traversal", pds::postOrder(tree_));
     }
 
     /*
@@ -159,7 +163,7 @@ namespace pds
      */
     void TreeSession::showLevelOrder() const
     {
-        Display::printTargets("Level-order traversal", tree_.levelOrder());
+        Display::printTargets("Level-order traversal", pds::levelOrder(tree_));
     }
 
     /*
@@ -170,8 +174,21 @@ namespace pds
      */
     void TreeSession::showHeight() const
     {
-        Display::printMessage("Tree height: " + std::to_string(tree_.height()) +
+        Display::printMessage("Tree height: " + std::to_string(pds::height(tree_)) +
             ", nodes: " + std::to_string(tree_.size()));
+    }
+
+    /*
+     * Purpose: Report structural metrics for the loaded tree.
+     * Design: Surfaces leaf count and balance using the TreeAnalysis module.
+     * Workflow: Read node, leaf, and balance metrics, then display them together.
+     * Data Handoff: Sends analysis results to the display layer.
+     */
+    void TreeSession::showStructure() const
+    {
+        Display::printMessage("Nodes: " + std::to_string(pds::nodeCount(tree_)) +
+            ", leaves: " + std::to_string(pds::leafCount(tree_)) +
+            ", balanced: " + (pds::isBalanced(tree_) ? "yes" : "no"));
     }
 
     /*

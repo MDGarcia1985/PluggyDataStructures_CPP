@@ -7,8 +7,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "core/TargetTree.h"
-#include "sorting/SortSupport.h"
+#include "structures/TargetTree.h"
+
+#include "algorithms/common/KeyNormalization.h"
+#include "algorithms/common/TargetOrdering.h"
 
 #include <queue>
 
@@ -16,36 +18,6 @@
 // named container pds = Pluggy Data Structures
 namespace pds
 {
-    namespace
-    {
-        /*
-         * Purpose: Normalize a key for case-insensitive descent comparisons.
-         * Design: Works on a copy so stored Target values are never altered.
-         * Workflow: Lowercase each byte safely and return the converted text.
-         * Data Handoff: Supplies findByKey() with comparable text derived from a Target field.
-         */
-        std::string lowercaseKey(std::string text)
-        {
-            std::transform(text.begin(), text.end(), text.begin(),
-                [](unsigned char character)
-                {
-                    return static_cast<char>(std::tolower(character));
-                });
-            return text;
-        }
-
-        /*
-         * Purpose: Decide whether two Targets are equal under the shared ordering.
-         * Design: Reuses targetLess so the tree's equality matches its ordering invariant.
-         * Workflow: Two values are equal when neither is strictly less than the other.
-         * Data Handoff: Supports duplicate rejection and node matching during search and removal.
-         */
-        bool targetsEqual(const Target& left, const Target& right)
-        {
-            return !targetLess(left, right) && !targetLess(right, left);
-        }
-    }
-
     /*
      * Purpose: Build one tree node around a Target value.
      * Design: Each node owns its Target and starts with no children.
@@ -178,17 +150,6 @@ namespace pds
     }
 
     /*
-     * Purpose: Report the height of the tree.
-     * Design: Defines an empty tree as height zero and a single node as height one.
-     * Workflow: Recursively measure the deeper subtree from the root.
-     * Data Handoff: Gives callers a balance indicator for the current shape.
-     */
-    std::size_t TargetTree::height() const
-    {
-        return heightOf(root_);
-    }
-
-    /*
      * Purpose: Insert a Target into the tree in sorted position.
      * Design: Uses the shared ordering and rejects exact duplicates.
      * Workflow: Descend recursively, create a node at the empty slot, and increment the count.
@@ -216,7 +177,7 @@ namespace pds
         const Node* node = root_;
         while (node != nullptr)
         {
-            if (targetsEqual(target, node->data))
+            if (targetEqualsByOrdering(target, node->data))
             {
                 return true;
             }
@@ -233,12 +194,12 @@ namespace pds
      */
     bool TargetTree::findByKey(const std::string& key, Target& found) const
     {
-        const std::string normalizedKey = lowercaseKey(key);
+        const std::string normalizedKey = normalizeKey(key);
         const Node* node = root_;
 
         while (node != nullptr)
         {
-            const std::string nodeKey = lowercaseKey(node->data.fieldOne());
+            const std::string nodeKey = normalizeKey(node->data.fieldOne());
             if (normalizedKey == nodeKey)
             {
                 found = node->data;
@@ -283,58 +244,28 @@ namespace pds
         return remove(found);
     }
 
-    /*
-     * Purpose: Return Targets in ascending (in-order) sequence.
-     * Design: Produces a sorted snapshot using the tree's ordering invariant.
-     * Workflow: Recursively visit left, node, then right, collecting values.
-     * Data Handoff: Returns a vector snapshot for display or tests.
-     */
-    std::vector<Target> TargetTree::inOrder() const
+    void TargetTree::visit(TreeVisitOrder order, const std::function<void(const Target&)>& visitor) const
     {
-        std::vector<Target> output;
-        output.reserve(count_);
-        inOrder(root_, output);
-        return output;
-    }
+        if (!visitor)
+        {
+            return;
+        }
 
-    /*
-     * Purpose: Return Targets in pre-order (node, left, right) sequence.
-     * Design: Reveals the tree's root-first structure for teaching and verification.
-     * Workflow: Recursively visit node, left, then right, collecting values.
-     * Data Handoff: Returns a vector snapshot for display or tests.
-     */
-    std::vector<Target> TargetTree::preOrder() const
-    {
-        std::vector<Target> output;
-        output.reserve(count_);
-        preOrder(root_, output);
-        return output;
-    }
-
-    /*
-     * Purpose: Return Targets in post-order (left, right, node) sequence.
-     * Design: Reveals the children-first structure used by safe deletion.
-     * Workflow: Recursively visit left, right, then node, collecting values.
-     * Data Handoff: Returns a vector snapshot for display or tests.
-     */
-    std::vector<Target> TargetTree::postOrder() const
-    {
-        std::vector<Target> output;
-        output.reserve(count_);
-        postOrder(root_, output);
-        return output;
-    }
-
-    /*
-     * Purpose: Return Targets in breadth-first (level-order) sequence.
-     * Design: Uses a FIFO queue of nodes to visit each depth before the next.
-     * Workflow: Enqueue the root, then repeatedly dequeue a node and enqueue its children.
-     * Data Handoff: Returns a vector snapshot for display or tests.
-     */
-    std::vector<Target> TargetTree::levelOrder() const
-    {
-        std::vector<Target> output;
-        output.reserve(count_);
+        if (order == TreeVisitOrder::InOrder)
+        {
+            visitInOrder(root_, visitor);
+            return;
+        }
+        if (order == TreeVisitOrder::PreOrder)
+        {
+            visitPreOrder(root_, visitor);
+            return;
+        }
+        if (order == TreeVisitOrder::PostOrder)
+        {
+            visitPostOrder(root_, visitor);
+            return;
+        }
 
         std::queue<const Node*> pending;
         if (root_ != nullptr)
@@ -346,7 +277,7 @@ namespace pds
         {
             const Node* node = pending.front();
             pending.pop();
-            output.push_back(node->data);
+            visitor(node->data);
 
             if (node->left != nullptr)
             {
@@ -357,8 +288,72 @@ namespace pds
                 pending.push(node->right);
             }
         }
+    }
 
-        return output;
+    std::size_t TargetTree::height() const
+    {
+        return heightOf(root_);
+    }
+
+    std::size_t TargetTree::leafCount() const
+    {
+        return leafCountOf(root_);
+    }
+
+    bool TargetTree::isBalanced() const
+    {
+        std::size_t measuredHeight = 0;
+        return checkBalanced(root_, measuredHeight);
+    }
+
+    bool TargetTree::minimum(Target& found) const
+    {
+        const Node* node = root_;
+        if (node == nullptr)
+        {
+            return false;
+        }
+        while (node->left != nullptr)
+        {
+            node = node->left;
+        }
+        found = node->data;
+        return true;
+    }
+
+    bool TargetTree::maximum(Target& found) const
+    {
+        const Node* node = root_;
+        if (node == nullptr)
+        {
+            return false;
+        }
+        while (node->right != nullptr)
+        {
+            node = node->right;
+        }
+        found = node->data;
+        return true;
+    }
+
+    std::vector<Target> TargetTree::pathToKey(const std::string& key) const
+    {
+        const std::string normalizedKey = normalizeKey(key);
+        std::vector<Target> path;
+        const Node* node = root_;
+
+        while (node != nullptr)
+        {
+            path.push_back(node->data);
+            const std::string nodeKey = normalizeKey(node->data.fieldOne());
+            if (normalizedKey == nodeKey)
+            {
+                return path;
+            }
+            node = normalizedKey < nodeKey ? node->left : node->right;
+        }
+
+        return std::vector<Target>();
     }
 
     /*
@@ -413,24 +408,6 @@ namespace pds
     }
 
     /*
-     * Purpose: Measure the height of a subtree.
-     * Design: Treats a null subtree as height zero for a simple recursive definition.
-     * Workflow: Return one plus the height of the taller child subtree.
-     * Data Handoff: Supplies height() with the recursive measurement.
-     */
-    std::size_t TargetTree::heightOf(const Node* node)
-    {
-        if (node == nullptr)
-        {
-            return 0;
-        }
-
-        const std::size_t leftHeight = heightOf(node->left);
-        const std::size_t rightHeight = heightOf(node->right);
-        return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
-    }
-
-    /*
      * Purpose: Find the smallest node in a subtree.
      * Design: Follows left links because the leftmost node holds the minimum.
      * Workflow: Descend left until a node has no left child.
@@ -445,55 +422,81 @@ namespace pds
         return node;
     }
 
-    /*
-     * Purpose: Append in-order values from a subtree.
-     * Design: Standard left, node, right recursion.
-     * Workflow: Recurse left, record the node, then recurse right.
-     * Data Handoff: Fills the output vector for inOrder().
-     */
-    void TargetTree::inOrder(const Node* node, std::vector<Target>& output) const
+    std::size_t TargetTree::heightOf(const Node* node)
     {
         if (node == nullptr)
         {
-            return;
+            return 0;
         }
-        inOrder(node->left, output);
-        output.push_back(node->data);
-        inOrder(node->right, output);
+        const std::size_t leftHeight = heightOf(node->left);
+        const std::size_t rightHeight = heightOf(node->right);
+        return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
     }
 
-    /*
-     * Purpose: Append pre-order values from a subtree.
-     * Design: Standard node, left, right recursion.
-     * Workflow: Record the node, then recurse left and right.
-     * Data Handoff: Fills the output vector for preOrder().
-     */
-    void TargetTree::preOrder(const Node* node, std::vector<Target>& output) const
+    std::size_t TargetTree::leafCountOf(const Node* node)
     {
         if (node == nullptr)
         {
-            return;
+            return 0;
         }
-        output.push_back(node->data);
-        preOrder(node->left, output);
-        preOrder(node->right, output);
+        if (node->left == nullptr && node->right == nullptr)
+        {
+            return 1;
+        }
+        return leafCountOf(node->left) + leafCountOf(node->right);
     }
 
-    /*
-     * Purpose: Append post-order values from a subtree.
-     * Design: Standard left, right, node recursion.
-     * Workflow: Recurse left and right, then record the node.
-     * Data Handoff: Fills the output vector for postOrder().
-     */
-    void TargetTree::postOrder(const Node* node, std::vector<Target>& output) const
+    bool TargetTree::checkBalanced(const Node* node, std::size_t& outHeight)
+    {
+        if (node == nullptr)
+        {
+            outHeight = 0;
+            return true;
+        }
+
+        std::size_t leftHeight = 0;
+        std::size_t rightHeight = 0;
+        const bool leftBalanced = checkBalanced(node->left, leftHeight);
+        const bool rightBalanced = checkBalanced(node->right, rightHeight);
+
+        outHeight = 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+        const std::size_t difference = leftHeight > rightHeight
+            ? leftHeight - rightHeight
+            : rightHeight - leftHeight;
+        return leftBalanced && rightBalanced && difference <= 1;
+    }
+
+    void TargetTree::visitInOrder(const Node* node, const std::function<void(const Target&)>& visitor)
     {
         if (node == nullptr)
         {
             return;
         }
-        postOrder(node->left, output);
-        postOrder(node->right, output);
-        output.push_back(node->data);
+        visitInOrder(node->left, visitor);
+        visitor(node->data);
+        visitInOrder(node->right, visitor);
+    }
+
+    void TargetTree::visitPreOrder(const Node* node, const std::function<void(const Target&)>& visitor)
+    {
+        if (node == nullptr)
+        {
+            return;
+        }
+        visitor(node->data);
+        visitPreOrder(node->left, visitor);
+        visitPreOrder(node->right, visitor);
+    }
+
+    void TargetTree::visitPostOrder(const Node* node, const std::function<void(const Target&)>& visitor)
+    {
+        if (node == nullptr)
+        {
+            return;
+        }
+        visitPostOrder(node->left, visitor);
+        visitPostOrder(node->right, visitor);
+        visitor(node->data);
     }
 
     /*
@@ -510,7 +513,7 @@ namespace pds
             return new Node(target);
         }
 
-        if (targetsEqual(target, node->data))
+        if (targetEqualsByOrdering(target, node->data))
         {
             inserted = false;
             return node;

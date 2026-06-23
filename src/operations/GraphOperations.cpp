@@ -27,3 +27,15 @@ PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
 
 PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
     GraphOp{5, "Add an edge", [](pds::GraphSession& session) { session.addEdgeFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{6, "Path exists between nodes", [](pds::GraphSession& session) { session.pathExistsFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{7, "Shortest path (weighted)", [](pds::GraphSession& session) { session.shortestPathFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{8, "Show node degree", [](pds::GraphSession& session) { session.showDegreeFromUser(); }})
+
+PDS_REGISTER_OPERATION(pds::GraphRegistry::instance(),
+    GraphOp{9, "Show components and cycle", [](pds::GraphSession& session) { session.showStructure(); }})
