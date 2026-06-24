@@ -35,6 +35,9 @@ add_executable(PluggyDataStructureTests
     ${PDS_TEST_SOURCES}
     $<TARGET_OBJECTS:pds_objects>)
 
+target_compile_definitions(PluggyDataStructureTests PRIVATE
+    PDS_TEST_LOG_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/data")
+
 enable_testing()
 add_test(
     NAME unit_tests

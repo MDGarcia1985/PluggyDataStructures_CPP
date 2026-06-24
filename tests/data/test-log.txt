@@ -1,0 +1,204 @@
+============================================================
+Test run: 2026-06-24 16:22:53
+Result: PASS
+Tests run: 43
+Passed: 43
+Failed: 0
+Assertions checked: 328
+
+New tests since previous run:
+  No previous run found; treating all tests as current baseline.
+
+Major test results:
+  PASS testTargetOrderingTiers
+  PASS testPureSortingAlgorithms
+  PASS testSortBenchmarkMetadata
+  PASS testSeparateChainingStrategy
+  PASS testLinearProbingStrategy
+  PASS testLinearProbingWrappedClusterMetric
+  PASS testTreeAlgorithms
+  PASS testExpressionEvaluationBuildsAndEvaluatesTree
+  PASS testExpressionEvaluationNormalizesPastedMathSymbols
+  PASS testExpressionEvaluationReportsErrors
+  PASS testGraphAlgorithms
+  PASS testMapAlgorithms
+  PASS testTargetModel
+  PASS testTargetListDataStructure
+  PASS testListEndpointRemoval
+  PASS testStackAndQueue
+  PASS testFileLoadingLayer
+  PASS testStructureMenuUsesFallbackData
+  PASS testEdgeFileLoadingLayer
+  PASS testStructureMenuReportsInvalidEdgeFile
+  PASS testDisplayLayer
+  PASS testMenuAndCommandLayer
+  PASS testControllerLayer
+  PASS testGraphNodesAndEdges
+  PASS testGraphTraversals
+  PASS testGraphHandlesCycles
+  PASS testGraphSessionAndRegistry
+  PASS testHashInsertFindErase
+  PASS testHashUpdateExistingKey
+  PASS testHashResizing
+  PASS testHashStrategySwitchPreservesEntries
+  PASS testHashStrategySwitchKeepsUpdatedValues
+  PASS testHashSessionAndRegistry
+  PASS testMapCountsNormalizedText
+  PASS testMapMostFrequentTies
+  PASS testMapCountsTargetFields
+  PASS testMapClearSessionAndRegistry
+  PASS testTreeInsertionAndOrdering
+  PASS testTreeDuplicateRejection
+  PASS testTreeSearch
+  PASS testTreeRemoval
+  PASS testTreeCopySemantics
+  PASS testTreeSessionAndRegistry
+
+BEGIN_CURRENT_TESTS
+testTargetOrderingTiers
+testPureSortingAlgorithms
+testSortBenchmarkMetadata
+testSeparateChainingStrategy
+testLinearProbingStrategy
+testLinearProbingWrappedClusterMetric
+testTreeAlgorithms
+testExpressionEvaluationBuildsAndEvaluatesTree
+testExpressionEvaluationNormalizesPastedMathSymbols
+testExpressionEvaluationReportsErrors
+testGraphAlgorithms
+testMapAlgorithms
+testTargetModel
+testTargetListDataStructure
+testListEndpointRemoval
+testStackAndQueue
+testFileLoadingLayer
+testStructureMenuUsesFallbackData
+testEdgeFileLoadingLayer
+testStructureMenuReportsInvalidEdgeFile
+testDisplayLayer
+testMenuAndCommandLayer
+testControllerLayer
+testGraphNodesAndEdges
+testGraphTraversals
+testGraphHandlesCycles
+testGraphSessionAndRegistry
+testHashInsertFindErase
+testHashUpdateExistingKey
+testHashResizing
+testHashStrategySwitchPreservesEntries
+testHashStrategySwitchKeepsUpdatedValues
+testHashSessionAndRegistry
+testMapCountsNormalizedText
+testMapMostFrequentTies
+testMapCountsTargetFields
+testMapClearSessionAndRegistry
+testTreeInsertionAndOrdering
+testTreeDuplicateRejection
+testTreeSearch
+testTreeRemoval
+testTreeCopySemantics
+testTreeSessionAndRegistry
+END_CURRENT_TESTS
+
+============================================================
+Test run: 2026-06-24 16:22:59
+Result: PASS
+Tests run: 43
+Passed: 43
+Failed: 0
+Assertions checked: 328
+
+New tests since previous run:
+  none
+
+Major test results:
+  PASS testTargetOrderingTiers
+  PASS testPureSortingAlgorithms
+  PASS testSortBenchmarkMetadata
+  PASS testSeparateChainingStrategy
+  PASS testLinearProbingStrategy
+  PASS testLinearProbingWrappedClusterMetric
+  PASS testTreeAlgorithms
+  PASS testExpressionEvaluationBuildsAndEvaluatesTree
+  PASS testExpressionEvaluationNormalizesPastedMathSymbols
+  PASS testExpressionEvaluationReportsErrors
+  PASS testGraphAlgorithms
+  PASS testMapAlgorithms
+  PASS testTargetModel
+  PASS testTargetListDataStructure
+  PASS testListEndpointRemoval
+  PASS testStackAndQueue
+  PASS testFileLoadingLayer
+  PASS testStructureMenuUsesFallbackData
+  PASS testEdgeFileLoadingLayer
+  PASS testStructureMenuReportsInvalidEdgeFile
+  PASS testDisplayLayer
+  PASS testMenuAndCommandLayer
+  PASS testControllerLayer
+  PASS testGraphNodesAndEdges
+  PASS testGraphTraversals
+  PASS testGraphHandlesCycles
+  PASS testGraphSessionAndRegistry
+  PASS testHashInsertFindErase
+  PASS testHashUpdateExistingKey
+  PASS testHashResizing
+  PASS testHashStrategySwitchPreservesEntries
+  PASS testHashStrategySwitchKeepsUpdatedValues
+  PASS testHashSessionAndRegistry
+  PASS testMapCountsNormalizedText
+  PASS testMapMostFrequentTies
+  PASS testMapCountsTargetFields
+  PASS testMapClearSessionAndRegistry
+  PASS testTreeInsertionAndOrdering
+  PASS testTreeDuplicateRejection
+  PASS testTreeSearch
+  PASS testTreeRemoval
+  PASS testTreeCopySemantics
+  PASS testTreeSessionAndRegistry
+
+BEGIN_CURRENT_TESTS
+testTargetOrderingTiers
+testPureSortingAlgorithms
+testSortBenchmarkMetadata
+testSeparateChainingStrategy
+testLinearProbingStrategy
+testLinearProbingWrappedClusterMetric
+testTreeAlgorithms
+testExpressionEvaluationBuildsAndEvaluatesTree
+testExpressionEvaluationNormalizesPastedMathSymbols
+testExpressionEvaluationReportsErrors
+testGraphAlgorithms
+testMapAlgorithms
+testTargetModel
+testTargetListDataStructure
+testListEndpointRemoval
+testStackAndQueue
+testFileLoadingLayer
+testStructureMenuUsesFallbackData
+testEdgeFileLoadingLayer
+testStructureMenuReportsInvalidEdgeFile
+testDisplayLayer
+testMenuAndCommandLayer
+testControllerLayer
+testGraphNodesAndEdges
+testGraphTraversals
+testGraphHandlesCycles
+testGraphSessionAndRegistry
+testHashInsertFindErase
+testHashUpdateExistingKey
+testHashResizing
+testHashStrategySwitchPreservesEntries
+testHashStrategySwitchKeepsUpdatedValues
+testHashSessionAndRegistry
+testMapCountsNormalizedText
+testMapMostFrequentTies
+testMapCountsTargetFields
+testMapClearSessionAndRegistry
+testTreeInsertionAndOrdering
+testTreeDuplicateRejection
+testTreeSearch
+testTreeRemoval
+testTreeCopySemantics
+testTreeSessionAndRegistry
+END_CURRENT_TESTS
+
