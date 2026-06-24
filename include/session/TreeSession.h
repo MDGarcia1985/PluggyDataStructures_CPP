@@ -33,6 +33,7 @@ namespace pds
         void showLevelOrder() const;
         void showHeight() const;
         void showStructure() const;
+        void evaluateExpressionFromUser() const;
 
         TargetTree& tree();
         const TargetTree& tree() const;

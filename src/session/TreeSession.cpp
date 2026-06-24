@@ -10,14 +10,60 @@
 #include "session/TreeSession.h"
 
 #include "algorithms/trees/TreeAnalysis.h"
+#include "algorithms/trees/ExpressionEvaluation.h"
 #include "algorithms/trees/TreeSearch.h"
 #include "algorithms/trees/TreeTraversal.h"
 #include "ui/Display.h"
+
+#include <cmath>
+#include <iomanip>
 
 
 // named container pds = Pluggy Data Structures
 namespace pds
 {
+    namespace
+    {
+        std::string joinTokens(const std::vector<std::string>& tokens, const std::string& separator)
+        {
+            std::string joined;
+            for (const std::string& token : tokens)
+            {
+                if (!joined.empty())
+                {
+                    joined += separator;
+                }
+                joined += token;
+            }
+            return joined;
+        }
+
+        std::string formatExpressionValue(double value)
+        {
+            if (std::abs(value) < 0.000000000001)
+            {
+                value = 0.0;
+            }
+
+            std::ostringstream output;
+            output << std::setprecision(12) << value;
+            std::string text = output.str();
+            const std::size_t dot = text.find('.');
+            if (dot != std::string::npos)
+            {
+                while (!text.empty() && text.back() == '0')
+                {
+                    text.pop_back();
+                }
+                if (!text.empty() && text.back() == '.')
+                {
+                    text.pop_back();
+                }
+            }
+            return text;
+        }
+    }
+
     /*
      * Purpose: Build a tree session preloaded from the selected dataset.
      * Design: Inserts each loaded Target so the dataset becomes a searchable BST.
@@ -189,6 +235,38 @@ namespace pds
         Display::printMessage("Nodes: " + std::to_string(pds::nodeCount(tree_)) +
             ", leaves: " + std::to_string(pds::leafCount(tree_)) +
             ", balanced: " + (pds::isBalanced(tree_) ? "yes" : "no"));
+    }
+
+    /*
+     * Purpose: Demonstrate a binary expression tree from user-provided arithmetic.
+     * Design: Routes expression parsing/evaluation through the pure ExpressionEvaluation module.
+     * Workflow: Prompt for text, evaluate it, and show result plus standard tree traversals.
+     * Data Handoff: Moves console text into the algorithm and prints the returned snapshots.
+     */
+    void TreeSession::evaluateExpressionFromUser() const
+    {
+        std::string expression;
+        std::cout << "\nEnter arithmetic expression: ";
+        std::getline(std::cin, expression);
+
+        if (expression.empty())
+        {
+            Display::printMessage("Expression cannot be empty.");
+            return;
+        }
+
+        const ExpressionEvaluationResult result = pds::evaluateExpression(expression);
+        if (!result.success)
+        {
+            Display::printMessage("Expression error: " + result.error);
+            return;
+        }
+
+        std::cout << "\nExpression result: " << formatExpressionValue(result.value) << '\n';
+        std::cout << "Pre-order: " << joinTokens(result.prefix, " ") << '\n';
+        std::cout << "In-order: " << joinTokens(result.infix, " ") << '\n';
+        std::cout << "Post-order: " << joinTokens(result.postfix, " ") << '\n';
+        std::cout << "Level-order: " << joinTokens(result.levelOrder, " ") << '\n';
     }
 
     /*

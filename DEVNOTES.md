@@ -1706,3 +1706,91 @@ Debug PluggyDataStructure build succeeded
 Debug PluggyDataStructureTests build succeeded
 CTest passed unit_tests
 ```
+
+## Completed Milestone: Expression Tree Evaluation Module
+
+Date completed:
+
+```text
+2026-06-24
+```
+
+This milestone turns the former expression-evaluation placeholder into a working expression-tree demonstration and records the follow-up split into parser, node, and evaluator implementation files.
+
+### Completed: Expression evaluation behavior
+
+`ExpressionEvaluation` now parses arithmetic expression text into a private binary expression tree, evaluates the tree, and returns traversal snapshots:
+
+```text
+pre-order
+in-order
+post-order
+level-order
+```
+
+The evaluator supports:
+
+```text
+addition
+subtraction
+multiplication
+division
+parenthesized groups
+unary plus and minus
+integer and decimal literals
+```
+
+It also normalizes common pasted math symbols, including multiplication and minus variants, so expressions copied from formatted assignment text can still parse.
+
+### Completed: Binary search tree boundary preserved
+
+`TargetTree` remains a binary search tree of `Target` records. Expression evaluation does not reuse or expose `TargetTree` nodes. Instead, it builds a separate arithmetic tree so the learning example can demonstrate expression-tree traversal without weakening the BST invariant boundary.
+
+The old `evaluateExpression(const TargetTree&)` overload remains as a compatibility guard and returns a message explaining that expression evaluation expects expression text.
+
+### Completed: Parser, node, and evaluator split
+
+The expression implementation was split from the former monolithic `src/algorithms/trees/ExpressionEvaluation.cpp` into:
+
+```text
+include/algorithms/trees/evaluations/expressions/ExpressionNode.h
+include/algorithms/trees/evaluations/expressions/ExpressionParser.h
+src/algorithms/trees/evaluations/expressions/ExpressionNode.cpp
+src/algorithms/trees/evaluations/expressions/ExpressionParser.cpp
+src/algorithms/trees/evaluations/expressions/ExpressionEvaluation.cpp
+```
+
+`ExpressionEvaluation.h` remains the public caller-facing header. Parser and node headers live under `trees/evaluations/expressions` because they are implementation details of this algorithm family.
+
+The folder is named `expressions` rather than the accidental `epressions` spelling so path names remain searchable and consistent.
+
+### Completed: Tree menu registration
+
+`TreeOperations.cpp` registers a new positive-ID tree operation:
+
+```text
+Evaluate expression tree
+```
+
+`TreeSession::evaluateExpressionFromUser()` prompts for an expression, delegates to the algorithm module, and prints the numeric result plus the expression tree's pre-order, in-order, post-order, and level-order traversals.
+
+### Completed: Inspectability comments
+
+The new expression parser, node helper, evaluator, and session methods follow the project function-header convention where behavior is nontrivial:
+
+```text
+Purpose
+Design
+Workflow
+Data Handoff
+```
+
+One-line functions with obvious output remain concise.
+
+### Validation completed
+
+```text
+g++ test build succeeded
+43 test case(s) passed, 0 failed, 328 assertion(s) checked
+g++ PluggyDataStructure.exe build succeeded
+```

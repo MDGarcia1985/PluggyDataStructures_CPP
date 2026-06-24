@@ -24,6 +24,7 @@
 #include "algorithms/sorting/QuickSort.h"
 #include "algorithms/sorting/SelectionSort.h"
 #include "algorithms/sorting/SortBenchmark.h"
+#include "algorithms/trees/ExpressionEvaluation.h"
 #include "algorithms/trees/TreeAnalysis.h"
 #include "algorithms/trees/TreeSearch.h"
 #include "algorithms/trees/TreeTraversal.h"
@@ -75,6 +76,20 @@ namespace
             }
         }
         return "";
+    }
+
+    std::string joinTokens(const std::vector<std::string>& tokens)
+    {
+        std::string joined;
+        for (const std::string& token : tokens)
+        {
+            if (!joined.empty())
+            {
+                joined += " ";
+            }
+            joined += token;
+        }
+        return joined;
     }
 }
 
@@ -228,6 +243,37 @@ PDS_TEST(testTreeAlgorithms)
     expectEqual(pds::nodeCount(tree), 4, "TreeAnalysis reports node count.");
     expectEqual(pds::leafCount(tree), 2, "TreeAnalysis reports leaf count.");
     expect(pds::isBalanced(tree), "TreeAnalysis reports balance when subtree heights differ by at most one.");
+}
+
+PDS_TEST(testExpressionEvaluationBuildsAndEvaluatesTree)
+{
+    const pds::ExpressionEvaluationResult result = pds::evaluateExpression(
+        "((((3+1)*3)/((9-5)+2))-((3*(7-4))+6))");
+
+    expect(result.success, "ExpressionEvaluation parses the sample expression.");
+    expect(result.value == -13.0, "ExpressionEvaluation evaluates the sample expression.");
+    expectEqual(joinTokens(result.prefix), "- / * + 3 1 3 + - 9 5 2 + * 3 - 7 4 6",
+        "ExpressionEvaluation exposes pre-order traversal.");
+    expectEqual(joinTokens(result.postfix), "3 1 + 3 * 9 5 - 2 + / 3 7 4 - * 6 + -",
+        "ExpressionEvaluation exposes post-order traversal.");
+    expectEqual(result.levelOrder.front(), "-", "ExpressionEvaluation root is the final subtraction.");
+}
+
+PDS_TEST(testExpressionEvaluationNormalizesPastedMathSymbols)
+{
+    const std::string expression = std::string("3 ") + "\xE2\x88\x97" + " (7 " + "\xE2\x88\x92" + " 4)";
+    const pds::ExpressionEvaluationResult result = pds::evaluateExpression(expression);
+
+    expect(result.success, "ExpressionEvaluation accepts pasted multiplication and minus symbols.");
+    expect(result.value == 9.0, "ExpressionEvaluation evaluates normalized operators.");
+}
+
+PDS_TEST(testExpressionEvaluationReportsErrors)
+{
+    const pds::ExpressionEvaluationResult result = pds::evaluateExpression("(3+)");
+
+    expect(!result.success, "ExpressionEvaluation rejects malformed expressions.");
+    expect(!result.error.empty(), "ExpressionEvaluation returns a useful error message.");
 }
 
 PDS_TEST(testGraphAlgorithms)

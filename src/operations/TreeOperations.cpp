@@ -39,3 +39,6 @@ PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
 
 PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
     TreeOp{9, "Show structure (leaves and balance)", [](pds::TreeSession& session) { session.showStructure(); }})
+
+PDS_REGISTER_OPERATION(pds::TreeRegistry::instance(),
+    TreeOp{10, "Evaluate expression tree", [](pds::TreeSession& session) { session.evaluateExpressionFromUser(); }})

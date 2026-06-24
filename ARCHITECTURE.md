@@ -120,6 +120,7 @@ graphs: traversal, search, weighted shortest path, structure analysis
 hashing: hash function, separate chaining, linear probing, collision analysis
 maps: frequency analysis, search, ranking
 trees: traversal, search, expression evaluation, structure analysis
+trees/evaluations/expressions: expression nodes, recursive-descent parser, expression-tree evaluation
 ```
 
 Sorting registration is intentionally separated from sorting mechanics. Pure sort functions mutate `std::vector<Target>&`; `SortOperations.cpp` adapts those functions to the linked-list workflow, benchmarks them, replaces the active list, and registers menu entries with `SortRegistry`.
@@ -239,6 +240,33 @@ Sessions own interactive I/O and operation modules in `src/operations/` self-reg
 `TargetHashTable` delegates storage to either separate chaining or linear probing. Strategy switching preserves entries and lets the session compare bucket views, load factor, collision metrics, longest chain/cluster, and average probe length.
 
 `TargetTree` keeps its node type private. Tree algorithms call public tree-owned helpers such as `visit(...)`, `height()`, `minimum()`, and `pathToKey()` so traversal and analysis do not expose mutation-capable internals.
+
+## Expression Tree Evaluation Boundary
+
+Expression-tree evaluation is intentionally separate from `TargetTree`. `TargetTree` remains a binary search tree of `Target` records, while expression parsing builds a private arithmetic tree under:
+
+```text
+include/algorithms/trees/evaluations/expressions/
+src/algorithms/trees/evaluations/expressions/
+```
+
+The expression evaluator uses three implementation pieces:
+
+```text
+ExpressionNode        owns token text and left/right expression children
+ExpressionParser      normalizes pasted math symbols and parses arithmetic with recursive descent
+ExpressionEvaluation  collects traversals and folds the parsed tree into a numeric result
+```
+
+`ExpressionEvaluation.h` remains the public include for callers. Parser and node headers live in the nested expression folder because they are implementation details, not application-wide structure APIs.
+
+`TreeOperations.cpp` registers the tree menu operation:
+
+```text
+Evaluate expression tree
+```
+
+`TreeSession::evaluateExpressionFromUser()` owns the console prompt and output formatting. It delegates parsing and evaluation to the UI-free algorithm module, then displays the result plus pre-order, in-order, post-order, and level-order token traversals.
 
 ## Map / Word Frequency Boundary
 
